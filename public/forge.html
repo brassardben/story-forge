@@ -353,11 +353,18 @@
   <!-- FEEDBACK -->
   <div id="feedback" class="pause" hidden role="dialog" aria-modal="true" aria-labelledby="fbTitle">
     <div class="pause-panel small-panel">
-      <header class="pause-head"><div><p class="eyebrow">[ BETA FEEDBACK ]</p><h2 id="fbTitle">What should change?</h2></div><button id="fbClose" class="btn" type="button">Close</button></header>
+      <header class="pause-head"><div><p class="eyebrow">[ BETA FEEDBACK ]</p><h2 id="fbTitle">Feedback &amp; ideas</h2></div><button id="fbClose" class="btn" type="button">Close</button></header>
       <div class="pause-body">
         <p class="appearance">Bugs, confusing parts, things you loved, ideas. Every note gets read.</p>
         <textarea id="fbText" rows="6" maxlength="4000" placeholder="e.g. The narrator voice was great, but chapter 3 forgot I had a shotgun…"></textarea>
         <div class="decision-foot"><button id="fbSend" class="btn primary" type="button">Send feedback</button></div>
+        <h3 class="ideas-h">Ideas board</h3>
+        <p class="appearance">What should Story Forge add next? Post an idea or tap ▲ on the ones you want most.</p>
+        <form id="ideaForm" class="custom" autocomplete="off">
+          <input id="ideaText" maxlength="280" placeholder="e.g. Let me pick my starting weapon" aria-label="Your idea">
+          <button type="submit" class="btn">Post idea</button>
+        </form>
+        <div id="ideasBoard" class="ideas"></div>
       </div>
     </div>
   </div>

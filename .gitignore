@@ -8,3 +8,5 @@ users.json
 users/
 *.tmp
 .DS_Store
+ratings.jsonl
+ideas.json

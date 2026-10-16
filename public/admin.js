@@ -39,6 +39,23 @@ async function load() {
     return [u.admin ? `${u.name} (you)` : u.name, when(u.created), when(u.lastSeen), `${u.usage?.chapter || 0} ch · ${u.usage?.narration || 0} narr · ${u.usage?.portrait || 0} img`];
   })));
   $('users').prepend(h('p', { class: 'hint' }, `${d.users.length} tester${d.users.length === 1 ? '' : 's'} · this week: ${totals.chapter} chapters, ${totals.narration} narrations, ${totals.portrait} portraits (rough cost ≈ $${(totals.chapter * 0.02 + totals.narration * 0.08 + totals.portrait * 0.04).toFixed(2)})`));
+  const T = d.ratingTotals || { up: 0, down: 0 }, all = T.up + T.down;
+  $('ratings').replaceChildren(
+    h('p', { class: 'hint' }, all ? `${all} rating${all === 1 ? '' : 's'} · 👍 ${T.up} · 👎 ${T.down} · ${Math.round((T.up / all) * 100)}% liked` : 'No ratings yet. Testers see a 👍 / 👎 under each chapter.'),
+    table(['When', 'Who', 'Story', 'Vote', 'Note'], (d.ratings || []).slice(0, 100).map(r => [when(r.at), r.from, `${r.run} · ch ${r.chapter}${r.title ? ` · ${r.title}` : ''}`, r.vote === 'up' ? '👍' : '👎', r.note || '—'])));
+  const mark = (id, status) => async () => {
+    const res = await fetch('/api/ideas/mark', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) });
+    if (!res.ok) return toast((await res.json().catch(() => ({}))).error || 'Could not update.', true);
+    load();
+  };
+  $('ideasAdmin').replaceChildren(table(['Votes', 'Idea', 'From', 'Status', ''], (d.ideas || []).map(i => [
+    h('b', {}, String(i.votes)), i.text, i.by, i.status,
+    h('div', { class: 'admin-actions' },
+      i.status !== 'planned' ? h('button', { class: 'btn small', type: 'button', onclick: mark(i.id, 'planned') }, 'Planned') : null,
+      i.status !== 'done' ? h('button', { class: 'btn small', type: 'button', onclick: mark(i.id, 'done') }, 'Done') : null,
+      i.status !== 'open' ? h('button', { class: 'btn small', type: 'button', onclick: mark(i.id, 'open') }, 'Reopen') : null,
+      h('button', { class: 'btn small ghost', type: 'button', onclick: mark(i.id, 'deleted') }, 'Delete')),
+  ])));
   $('feedback').replaceChildren(...(d.feedback.length ? d.feedback.map(f => h('div', { class: 'card fb' },
     h('div', { class: 'card-sub' }, `${f.from} · ${when(f.at)}${f.page ? ` · ${f.page}` : ''}`),
     h('div', { class: 'fb-text' }, f.text))) : [h('p', { class: 'empty' }, 'No feedback yet.')]));

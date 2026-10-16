@@ -155,6 +155,27 @@ $$('fbSend').addEventListener('click', async () => {
   try { await post('/api/feedback', { text, page }); $$('fbText').value = ''; $$('feedback').hidden = true; toast('Thanks! Feedback sent.'); }
   catch (err) { toast(err.message, true); }
 });
+// ---------- ideas board ----------
+async function loadIdeas(data) {
+  const box = $$('ideasBoard');
+  try { data = data || await get('/api/ideas'); } catch (err) { box.replaceChildren(h('p', { class: 'empty' }, err.message)); return; }
+  const act = (url, body) => async () => { try { loadIdeas(await post(url, body)); } catch (err) { toast(err.message, true); } };
+  const badge = { planned: 'PLANNED', done: 'DONE' };
+  box.replaceChildren(...(data.ideas.length ? data.ideas.map(i => h('div', { class: `idea${i.status === 'done' ? ' is-done' : ''}` },
+    h('button', { class: `vote${i.mine ? ' on' : ''}`, type: 'button', 'aria-pressed': String(i.mine), 'aria-label': i.mine ? 'Remove your vote' : 'Vote for this idea', onclick: act('/api/ideas/vote', { id: i.id }) }, h('span', {}, '▲'), h('b', {}, String(i.votes))),
+    h('div', { class: 'idea-main' },
+      h('div', { class: 'idea-text' }, badge[i.status] ? h('span', { class: `tag ${i.status}` }, badge[i.status]) : null, i.text),
+      h('div', { class: 'card-sub' }, `${i.by}`, i.own || data.admin ? h('button', { class: 'linkish', type: 'button', onclick: act('/api/ideas/remove', { id: i.id }) }, 'remove') : null)),
+  )) : [h('p', { class: 'empty' }, 'No ideas yet. Be the first.')]));
+}
+$$('ideaForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const text = $$('ideaText').value.trim();
+  if (!text) return $$('ideaText').focus();
+  try { loadIdeas(await post('/api/ideas', { text })); $$('ideaText').value = ''; toast('Idea posted. Others can vote on it now.'); }
+  catch (err) { toast(err.message, true); }
+});
+$$('feedbackBtn').addEventListener('click', () => loadIdeas());
 for (const id of ['feedback', 'account']) $$(id).addEventListener('click', e => { if (e.target.id === id) $$(id).hidden = true; });
 const audioUrl = (file) => `/api/forge/audio?id=${encodeURIComponent(S.run.id)}&file=${file}`;
 const latest = () => S.run.chapters.at(-1);
@@ -374,8 +395,36 @@ function renderChapter(c) {
       h('h2', {}, c.title),
       has(c, 'c') ? h('button', { class: 'btn small chapter-play', type: 'button', onclick: () => playChapter(c) }, '▶ Play') : null),
     ...body,
+    rateBox(c),
     c.decision ? h('div', { class: 'chose' }, h('b', {}, c.decision.by && c.decision.by !== S.run.setup.name ? `${c.decision.by} chose` : 'You chose'), h('span', {}, c.decision.text)) : null,
   );
+}
+// ---------- chapter rating (beta) ----------
+const rateKey = c => `${S.run.id}:${c.n}`;
+function rateBox(c) {
+  const done = pref.get('rated', {})[rateKey(c)];
+  if (done) return h('div', { class: 'rate done' }, done === 'up' ? '👍 Thanks, glad that one worked.' : '👎 Thanks, that helps us fix it.');
+  const send = async (vote, note = '') => {
+    try {
+      await post('/api/rate', { vote, note, run: S.run.title, chapter: c.n, title: c.title });
+      pref.set('rated', { ...pref.get('rated', {}), [rateKey(c)]: vote });
+      if (S.rateOpen === rateKey(c)) S.rateOpen = null;
+      box.replaceWith(rateBox(c));
+    } catch (err) { toast(err.message, true); }
+  };
+  const box = h('div', { class: 'rate' });
+  if (S.rateOpen === rateKey(c)) {
+    const note = h('textarea', { rows: 3, maxlength: 1500, placeholder: 'What would have made it better? (optional)', 'aria-label': 'What would have made it better?' });
+    box.append(note, h('div', { class: 'rate-row' },
+      h('button', { class: 'btn primary small', type: 'button', onclick: () => send('down', note.value) }, 'Send'),
+      h('button', { class: 'btn ghost small', type: 'button', onclick: () => send('down') }, 'Skip')));
+    setTimeout(() => note.focus(), 0);
+  } else {
+    box.append(h('span', { class: 'rate-q' }, 'How was this chapter?'),
+      h('button', { class: 'btn small', type: 'button', 'aria-label': 'Thumbs up', onclick: () => send('up') }, '👍'),
+      h('button', { class: 'btn small', type: 'button', 'aria-label': 'Thumbs down', onclick: () => { S.rateOpen = rateKey(c); box.replaceWith(rateBox(c)); } }, '👎'));
+  }
+  return box;
 }
 function renderSheet() {
   const chs = S.run.chapters, s = latest().sheet, prev = chs.length > 1 ? chs.at(-2).sheet : null;

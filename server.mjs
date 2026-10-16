@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { createForge } from './forge.mjs';
 import { createAuth } from './auth.mjs';
+import { createBeta } from './beta.mjs';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const envPath = path.resolve(root, '../../.env.local');
@@ -24,6 +25,7 @@ const num = (v, d) => (v === undefined || v === '' ? d : Number(v));
 const limits = { chapter: num(process.env.LIMIT_CHAPTERS, 30), narration: num(process.env.LIMIT_NARRATION, 30), portrait: num(process.env.LIMIT_PORTRAITS, 3), ideas: num(process.env.LIMIT_IDEAS, 15) };
 await mkdir(dataDir, { recursive: true });
 const auth = hosted ? await createAuth({ dataDir, adminCode: process.env.ADMIN_CODE, limits, secure: process.env.INSECURE_COOKIES !== '1' }) : null;
+const beta = await createBeta({ dataDir });
 const files = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'], '/favicon.svg': ['favicon.svg', 'image/svg+xml'] };
 let busy = false;
 function json(res, status, data) { res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(data)); }
@@ -101,10 +103,15 @@ const server = http.createServer(async (req, res) => {
 
     // ----- accounts, feedback and admin (hosted beta) -----
     const user = hosted ? auth.userFor(req) : null;
-    if (p.startsWith('/api/auth/') || p === '/api/feedback' || p.startsWith('/api/admin/')) {
+    if (p.startsWith('/api/auth/') || p === '/api/feedback' || p === '/api/rate' || p.startsWith('/api/ideas') || p.startsWith('/api/admin/')) {
       if (req.method === 'GET' && p === '/api/auth/me') {
         if (!hosted) return json(res, 200, { hosted: false });
         return user ? json(res, 200, { hosted: true, user: auth.me(user) }) : json(res, 401, { hosted: true, error: 'Sign in with your invite code.' });
+      }
+      const me = hosted ? user : { id: 'local', name: 'You', admin: true };
+      if (req.method === 'GET' && p === '/api/ideas') {
+        if (!me) return json(res, 401, { error: 'Sign in first.' });
+        return json(res, 200, { ideas: beta.list(me.id), admin: Boolean(me.admin) });
       }
       if (req.method !== 'POST' && !(req.method === 'GET' && p === '/api/admin/overview')) return json(res, 405, { error: 'Method not allowed.' });
       if (req.method === 'POST' && !(hosted ? sameOrigin(req) : ['http://localhost:'+port,'http://127.0.0.1:'+port].includes(req.headers.origin))) return json(res, 403, { error: 'Request must come from this app.' });
@@ -118,11 +125,23 @@ const server = http.createServer(async (req, res) => {
         await appendFile(path.join(dataDir, 'feedback.jsonl'), JSON.stringify({ at: new Date().toISOString(), from: user?.name || 'local', page: String(d.page || '').slice(0, 200), text }) + '\n');
         return json(res, 200, { ok: true });
       }
+      if (p === '/api/rate' || p.startsWith('/api/ideas')) {
+        if (!me) return json(res, 401, { error: 'Sign in first.' });
+        const d = await readJson(req, 10000);
+        if (p === '/api/rate') { await beta.rate(me, d); return json(res, 200, { ok: true }); }
+        if (p === '/api/ideas') await beta.add(me, d.text);
+        else if (p === '/api/ideas/vote') await beta.vote(me, String(d.id || ''));
+        else if (p === '/api/ideas/remove') await beta.remove(me, String(d.id || ''));
+        else if (p === '/api/ideas/mark' && me.admin) await beta.mark(String(d.id || ''), String(d.status || ''));
+        else return json(res, 404, { error: 'Not found.' });
+        return json(res, 200, { ideas: beta.list(me.id), admin: Boolean(me.admin) });
+      }
       if (!hosted || !user?.admin) return json(res, 403, { error: 'Admins only.' });
       if (p === '/api/admin/overview') {
         let feedback = [];
         try { feedback = (await readFile(path.join(dataDir, 'feedback.jsonl'), 'utf8')).trim().split('\n').filter(Boolean).map(l => JSON.parse(l)).reverse().slice(0, 300); } catch {}
-        return json(res, 200, { ...auth.overview(), feedback });
+        const ratings = (await beta.ratings()).reverse();
+        return json(res, 200, { ...auth.overview(), feedback, ratings: ratings.slice(0, 300), ratingTotals: { up: ratings.filter(r => r.vote === 'up').length, down: ratings.filter(r => r.vote === 'down').length }, ideas: beta.list(user.id) });
       }
       if (p === '/api/admin/invite') { const d = await readJson(req); return json(res, 200, { code: await auth.createInvite(d.note, d.max) }); }
       return json(res, 404, { error: 'Not found.' });

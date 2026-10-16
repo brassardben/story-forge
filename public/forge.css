@@ -392,3 +392,23 @@ select option[hidden] { display: none; }
 .invite-out { margin-top: 16px; }
 .fb { margin-bottom: 10px; }
 .fb-text { white-space: pre-wrap; color: var(--ink); }
+
+/* chapter rating + ideas board (beta) */
+.rate { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0 10px; color: var(--muted); font-size: 14px; }
+.rate.done { font-size: 13px; }
+.rate textarea { flex-basis: 100%; width: 100%; }
+.rate-q { margin-right: 4px; }
+.rate-row { display: flex; gap: 8px; }
+.ideas-h { margin-top: 26px !important; }
+.ideas { display: grid; gap: 8px; margin-top: 14px; }
+.idea { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+.idea.is-done { opacity: .6; }
+.idea-main { min-width: 0; flex: 1; }
+.idea-text { color: var(--ink); overflow-wrap: anywhere; }
+.vote { display: grid; justify-items: center; min-width: 44px; padding: 4px 6px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: 600 13px var(--mono); cursor: pointer; }
+.vote.on { border-color: var(--ember); color: var(--ember); background: rgba(242, 153, 74, .08); }
+.tag { font: 600 10px var(--mono); letter-spacing: 1px; padding: 2px 6px; border-radius: 5px; margin-right: 8px; vertical-align: 1px; }
+.tag.planned { color: var(--sys); border: 1px solid var(--sys-line); }
+.tag.done { color: var(--good); border: 1px solid var(--good); }
+.linkish { background: none; border: 0; color: var(--muted); text-decoration: underline; font-size: 12px; margin-left: 10px; cursor: pointer; padding: 0; }
+.admin-actions { display: flex; gap: 6px; flex-wrap: wrap; }
