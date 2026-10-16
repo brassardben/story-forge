@@ -18,6 +18,9 @@ export function weekKey(d = new Date()) {
 }
 
 export async function createAuth({ dataDir, adminCode, limits, secure }) {
+  // A short admin code is too easy to guess, and the admin has unlimited OpenAI usage.
+  const weakAdmin = adminCode && String(adminCode).trim().length < 12;
+  if (weakAdmin) { console.error('ADMIN_CODE is shorter than 12 characters, so admin sign-in is disabled. Set a longer one.'); adminCode = null; }
   const file = path.join(dataDir, 'users.json');
   let db = { users: {}, sessions: {}, invites: {} };
   try { db = { ...db, ...JSON.parse(await readFile(file, 'utf8')) }; } catch {}
@@ -58,6 +61,7 @@ export async function createAuth({ dataDir, adminCode, limits, secure }) {
       const existing = Object.entries(db.users).find(([, u]) => u.pcode === c);
       if (existing) { await startSession(res, existing[0]); return { id: existing[0], ...existing[1] }; }
       const isAdmin = adminCode && c === String(adminCode).trim().toUpperCase();
+      if (!isAdmin && weakAdmin && c.length < 12 && !db.invites[c]) throw Object.assign(new Error('Admin sign-in is turned off because the ADMIN_CODE is too short. Set one with 12+ characters in Render > Environment.'), { status: 403 });
       const inv = db.invites[c];
       if (!isAdmin && (!inv || inv.uses >= inv.max)) throw Object.assign(new Error('That code isn’t valid, or it has been used up.'), { status: 403 });
       if (!name) throw Object.assign(new Error('Add a name so we know who you are.'), { status: 400 });
