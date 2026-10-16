@@ -1,0 +1,10 @@
+.env*
+!.env.example
+node_modules/
+saves/
+errors.log
+feedback.jsonl
+users.json
+users/
+*.tmp
+.DS_Store

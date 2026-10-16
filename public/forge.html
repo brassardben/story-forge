@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Story Forge</title>
+  <meta name="description" content="An interactive LitRPG you play by choosing, and replay as an audiobook.">
+  <link rel="icon" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#0a0d14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Story Forge">
+  <link rel="stylesheet" href="/forge.css">
+  <script src="/forge.js" defer></script>
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="/forge#"><span class="sigil" aria-hidden="true">◆</span> Story Forge</a>
+    <nav class="nav">
+      <a href="/forge#" class="navlink">My runs</a>
+      <a href="/" class="navlink dim" id="studioLink">Story Studio</a>
+    </nav>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <button id="feedbackBtn" class="btn small" type="button">💬 Feedback</button>
+    <button id="accountBtn" class="btn small" type="button" hidden>👤</button>
+  </header>
+
+  <div id="banner" class="banner" hidden>No OpenAI API key found. Close Story Forge and double-click <strong>Start Story Studio</strong> on your Desktop to set it up.</div>
+
+  <!-- SIGN IN (hosted beta) -->
+  <main id="join" class="home" hidden>
+    <section class="intro">
+      <p class="eyebrow">[ CLOSED BETA ]</p>
+      <h1>Every legend starts at Level 1.</h1>
+      <p class="lede">An interactive LitRPG you play by choosing, narrated like an audiobook. Enter your invite code to start.</p>
+    </section>
+    <section class="panel">
+      <form id="joinForm" class="form" autocomplete="off">
+        <label for="jCode">Invite code</label>
+        <input id="jCode" maxlength="40" placeholder="FORGE-XXXX" autocapitalize="characters" required>
+        <label for="jName">Your name <span class="opt">first name or a nickname</span></label>
+        <input id="jName" maxlength="40" placeholder="e.g. Ben">
+        <button class="btn primary big" type="submit">Enter the System</button>
+        <p class="hint">Already joined on another device? Enter your <b>player code</b> instead (find it under 👤), and leave the name blank.</p>
+      </form>
+    </section>
+  </main>
+
+  <!-- HOME -->
+  <main id="home" class="home" hidden>
+    <section class="intro">
+      <p class="eyebrow">[ SYSTEM INTEGRATION IMMINENT ]</p>
+      <h1>Every legend starts at Level 1.</h1>
+      <p class="lede">The world ends. The System arrives. Every chapter stops at a choice, and what you pick changes what happens next. Listen as you go, then replay your whole run as an audiobook.</p>
+    </section>
+
+    <section id="runsPanel" class="panel" hidden>
+      <h2>Continue a run</h2>
+      <div id="runsList" class="runs"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Start a new run</h2>
+      <form id="newForm" class="form" autocomplete="off">
+        <div class="grid2">
+          <div>
+            <label for="fName">Hero’s name</label>
+            <input id="fName" maxlength="40" required placeholder="Ben">
+          </div>
+          <div>
+            <label for="fPronouns">Pronouns</label>
+            <select id="fPronouns">
+              <option value="he/him">He / him</option>
+              <option value="she/her">She / her</option>
+              <option value="they/them">They / them</option>
+            </select>
+          </div>
+        </div>
+        <label for="fBackground">Your background <span class="opt">optional: it shapes your skills and instincts</span></label>
+        <input id="fBackground" maxlength="300" placeholder="e.g. Army SFC, 18 years in, unit armorer · ER nurse · diesel mechanic · high school QB">
+
+        <div class="grid2">
+          <div>
+            <label for="fFamily">Your loved ones</label>
+            <select id="fFamily">
+              <option value="none">Don’t bring them up</option>
+              <option value="offscreen">Safe off-screen, rarely mentioned</option>
+              <option value="sanctuary">Sanctuary: kids &amp; moms taken somewhere safe</option>
+              <option value="search">Out there: find them</option>
+              <option value="with">With me in the story</option>
+            </select>
+          </div>
+          <div id="familyWho" hidden>
+            <label for="fFamilyDesc">Who are they? <span class="opt">optional</span></label>
+            <input id="fFamilyDesc" maxlength="200" placeholder="e.g. my wife Sarah, daughters Lily and Emma">
+          </div>
+        </div>
+        <p id="familyHint" class="hint" hidden></p>
+
+        <label for="fWorld">The world</label>
+        <select id="fWorld">
+          <option value="earth">System Apocalypse: Earth is integrated without warning</option>
+          <option value="dungeon">Dungeon Break: every gate on Earth breaks at once</option>
+          <option value="turning">The Turning: something inside Earth wakes, and it’s our solar system’s turn</option>
+          <option value="vanished">The Long Silence: wake where you were born, 100 years later, everyone gone</option>
+          <option value="cataclysm">Cataclysm: a natural disaster ends the world, and you survive the aftermath</option>
+          <option value="dream">The Dreaming: an AI holds humanity in a simulation, and only you know</option>
+          <option value="space">Taken: ripped from Earth into a universe of alien species</option>
+          <option value="fallen">Fallen Kingdom: a fantasy realm on the night it falls</option>
+          <option value="wasteland">Wasteland Awakening: the System wakes in a ruined future</option>
+          <option value="custom">Your own idea…</option>
+        </select>
+        <p id="worldHint" class="hint"></p>
+        <div id="premiseWrap" hidden>
+          <label for="fPremise">Describe your world</label>
+          <textarea id="fPremise" rows="4" maxlength="1500" placeholder="What happened to the world, what the System is, and what makes your hero different…"></textarea>
+        </div>
+
+        <label for="fStyle">Writing style</label>
+        <select id="fStyle">
+          <option value="lean">Lean &amp; punchy: action and dialogue first, no fluff</option>
+          <option value="balanced">Balanced: a few well-picked details</option>
+          <option value="rich">Rich &amp; descriptive: atmosphere and inner thoughts</option>
+        </select>
+
+        <label for="fTone">Tone</label>
+        <select id="fTone">
+          <option value="gritty">Gritty &amp; serious</option>
+          <option value="darkcomedy">Dark comedy: snarky System, twisted humor, real stakes</option>
+          <option value="epic">Epic &amp; heroic</option>
+          <option value="horror">Horror</option>
+        </select>
+
+        <div class="grid2">
+          <div>
+            <label for="fRating">Content rating</label>
+            <select id="fRating">
+              <option value="pg" hidden>PG: family-friendly</option>
+              <option value="pg13">PG-13: action, little gore</option>
+              <option value="r" selected>R: bloody, strong language</option>
+              <option value="hardr">Hard R: graphic gore, bleak themes</option>
+            </select>
+          </div>
+          <div>
+            <label for="fRomance">Romance</label>
+            <select id="fRomance">
+              <option value="off">None</option>
+              <option value="frank">Honest: it happens, no big deal</option>
+              <option value="subplot">Slow-burn subplot</option>
+              <option value="steamy">Steamy (fades to black)</option>
+            </select>
+          </div>
+        </div>
+
+        <label>Who (or what) you’ll be fighting <span class="opt">pick any, or none to let the story decide</span></label>
+        <div class="chips" id="fEnemies">
+          <label class="chip"><input type="checkbox" value="monsters"> Monsters &amp; beasts</label>
+          <label class="chip"><input type="checkbox" value="humans"> Other humans</label>
+          <label class="chip"><input type="checkbox" value="aliens"> Alien species</label>
+          <label class="chip"><input type="checkbox" value="undead"> Undead</label>
+          <label class="chip"><input type="checkbox" value="demons"> Demons</label>
+          <label class="chip"><input type="checkbox" value="machines"> Rogue AI &amp; machines</label>
+        </div>
+
+        <div class="hometown">
+          <label for="fPlace">📍 Where does your story start? <span class="opt">your real town or neighborhood</span></label>
+          <input id="fPlace" maxlength="200" placeholder="e.g. Hamburg, NY, or “the south side of Plattsburgh”">
+          <label for="fLandmarks">Local spots to include <span class="opt">optional: streets, landmarks, hangouts</span></label>
+          <input id="fLandmarks" maxlength="300" placeholder="e.g. Route 20, the fairgrounds, Tim Hortons on Main St, my street (Elm St)">
+          <p class="hint">The story opens right there, using real roads and landmarks you list. No need for your actual address. The System already knows where you live. <em>(Kidding.)</em> A town and a few favorite spots is plenty, or leave it blank and let the story pick.</p>
+        </div>
+        <div class="grid2">
+          <div>
+            <label for="fClass">Starting class</label>
+            <select id="fClass">
+              <option value="">Let the System decide</option>
+              <option>Warrior</option><option>Ranger</option><option>Mage</option>
+              <option>Rogue</option><option>Healer</option><option>Summoner</option>
+              <option value="__custom">Something else…</option>
+            </select>
+            <input id="fClassCustom" maxlength="40" placeholder="e.g. Blacksmith, Necromancer" hidden>
+          </div>
+          <div>
+            <label for="fWords">Chapter length</label>
+            <select id="fWords">
+              <option value="500">Short (~3 min listen)</option>
+              <option value="900" selected>Standard (~6 min listen)</option>
+              <option value="1400">Long (~9 min listen)</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid2">
+          <div>
+            <label for="fVoice">Narrator voice</label>
+            <select id="fVoice" class="voice-select"></select>
+          </div>
+          <div>
+            <label for="fSysVoice">System voice</label>
+            <select id="fSysVoice" class="voice-select"></select>
+          </div>
+        </div>
+        <label class="toggle inline"><input type="checkbox" id="fCharVoices" checked> Give every character their own voice</label>
+        <div class="vision">
+          <label for="fNotes">✍ Your story vision <span class="opt">optional: write as much as you want</span></label>
+          <textarea id="fNotes" rows="6" maxlength="6000" placeholder="Dump every idea here and the story will build around it. What set it all off, who’s behind it, where you want it to go, mechanics you love (crafting, mod kits, vehicles, gods…), things to include or avoid. You can edit this later from the Status screen."></textarea>
+          <div class="hint"><span id="notesCount">0</span> / 6,000</div>
+        </div>
+
+        <details class="advanced" id="advanced">
+          <summary>Advanced setup <span class="opt">sidekick, family mode, your System, story notes</span></summary>
+
+          <div class="grid2">
+            <div>
+              <label for="fSysName">What the System is called</label>
+              <select id="fSysName">
+                <option>The System</option>
+                <option>The Overseer</option>
+                <option>The Arbiter</option>
+                <option>The Ledger</option>
+                <option>The Interface</option>
+                <option>The Ascension Protocol</option>
+                <option value="__custom">Name it yourself…</option>
+              </select>
+              <input id="fSysNameCustom" maxlength="40" placeholder="e.g. MOTHER, The Auditor" hidden>
+            </div>
+            <div>
+              <label for="fPersonality">Its personality</label>
+              <select id="fPersonality">
+                <option value="auto">Match the tone</option>
+                <option value="cold">Cold &amp; clinical</option>
+                <option value="snarky">Snarky &amp; sadistic</option>
+                <option value="glitchy">Glitchy &amp; unstable</option>
+                <option value="helpful">Secretly on your side</option>
+                <option value="ancient">Ancient &amp; cryptic</option>
+              </select>
+            </div>
+          </div>
+
+          <label for="fCompanion">Sidekick or companion</label>
+          <select id="fCompanion">
+            <option value="none">No sidekick</option>
+            <option value="open">I want one, so let the story bring one in when it fits</option>
+            <option value="start">Start with one</option>
+          </select>
+          <input id="fCompanionDesc" maxlength="200" placeholder="Who? e.g. my dog Rex, a sarcastic drone, my best friend Mike (or leave blank)" hidden>
+
+          <label>Party members <span class="opt">family &amp; road-trip mode: everyone gets a character</span></label>
+          <div id="partyList" class="party"></div>
+          <button id="addMember" class="btn small" type="button">+ Add party member</button>
+          <label class="toggle inline"><input type="checkbox" id="fTurns"> Take turns making the choices</label>
+          <p id="kidNote" class="hint kid" hidden>Kids in the party: the story is locked to family-friendly (PG, no romance).</p>
+
+          <label class="toggle inline"><input type="checkbox" id="fAutoPoints"> Auto-assign stat points <span class="opt">good for hands-free</span></label>
+        </details>
+
+        <button id="startBtn" class="btn primary big" type="submit">Enter the System</button>
+        <p class="hint">Each chapter costs a few cents in OpenAI credits, plus a few more if it’s narrated.</p>
+      </form>
+    </section>
+  </main>
+
+  <!-- PLAY -->
+  <main id="play" class="play" hidden>
+    <article class="story">
+      <header class="runhead">
+        <p class="eyebrow" id="runMeta"></p>
+        <h1 class="title-row"><span id="runTitle"></span><button id="renameBtn" class="btn ghost small" type="button" title="Rename this story" aria-label="Rename this story">✎ Rename</button></h1>
+        <div class="runtools">
+          <button id="statusBtn" class="btn status-btn">⏸ Status<span id="pointsBadge" class="badge" hidden></span></button>
+          <select id="styleSel" class="style-sel" aria-label="Writing style" title="Writing style for the next chapters">
+            <option value="lean">Style: Lean</option>
+            <option value="balanced">Style: Balanced</option>
+            <option value="rich">Style: Rich</option>
+          </select>
+          <button id="listenAllBtn" class="btn">▶ Listen from the start</button>
+          <button id="audiobookBtn" class="btn">Download audiobook</button>
+          <button id="textBtn" class="btn">Download text</button>
+          <button id="sheetToggle" class="btn mobile-only">Status</button>
+        </div>
+      </header>
+
+      <div id="chapters"></div>
+
+      <div id="writing" class="writing" hidden>
+        <span class="pulse" aria-hidden="true"></span><span id="writingText">The System is writing…</span>
+      </div>
+
+      <section id="decision" class="decision" hidden>
+        <h2 id="decisionTitle">What do you do?</h2>
+        <div id="steerChip" class="steer" hidden><b>Steering</b><span id="steerText"></span><button id="steerClear" class="btn ghost small" type="button" aria-label="Stop steering">✕</button></div>
+        <div id="choices" class="choices"></div>
+        <form id="customForm" class="custom" autocomplete="off">
+          <input id="customInput" maxlength="300" placeholder="Or describe your own move…" aria-label="Your own move">
+          <button type="button" id="micBtn" class="btn icon" title="Speak your move" aria-label="Speak your move" hidden>🎙</button>
+          <button type="submit" class="btn primary">Do it</button>
+        </form>
+        <div class="decision-foot">
+          <button id="ideasBtn" class="btn ghost" type="button">💡 Give me ideas</button>
+          <button id="rerollBtn" class="btn ghost" type="button">↻ Rewrite this chapter</button>
+        </div>
+        <div id="ideasPanel" class="ideas" hidden>
+          <p class="hint">Pick a direction and the story will work it in over the next chapter or two. Your choices still drive everything.</p>
+          <div id="ideasList" class="ideas-list"></div>
+          <form id="steerForm" class="custom" autocomplete="off">
+            <input id="steerInput" maxlength="500" placeholder="Or steer it yourself: e.g. bring in a rival who also woke up">
+            <button class="btn" type="submit">Steer</button>
+          </form>
+        </div>
+      </section>
+    </article>
+
+    <aside id="sheet" class="sheet" aria-label="Character status"></aside>
+  </main>
+
+  <!-- PAUSE SCREEN -->
+  <div id="pause" class="pause" hidden role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+    <div class="pause-panel">
+      <header class="pause-head">
+        <div>
+          <p class="eyebrow">[ PAUSED ]</p>
+          <h2 id="pauseTitle"></h2>
+        </div>
+        <button id="pauseClose" class="btn" type="button">Resume ▶</button>
+      </header>
+      <nav class="tabs" role="tablist">
+        <button class="tab" data-tab="character" role="tab">Character</button>
+        <button class="tab" data-tab="gear" role="tab">Gear &amp; Inventory</button>
+        <button class="tab" data-tab="party" role="tab">Companions</button>
+        <button class="tab" data-tab="codex" role="tab">Codex</button>
+        <button class="tab" data-tab="messages" role="tab" id="messagesTab" hidden>Messages</button>
+        <button class="tab" data-tab="vision" role="tab">Story vision</button>
+        <button class="tab" data-tab="voices" role="tab">Voices</button>
+      </nav>
+      <div id="pauseBody" class="pause-body"></div>
+    </div>
+  </div>
+
+  <!-- PLAYER -->
+  <div id="player" class="player">
+    <div class="pl-main">
+      <div class="pl-label"><span id="plNow">Narration</span><span id="plNext" class="dim"></span></div>
+      <audio id="audio" controls preload="auto"></audio>
+    </div>
+    <div class="pl-tools">
+      <button id="plSkip" class="btn small" type="button" hidden>Skip ⏭</button>
+      <button id="narrateBtn" class="btn small" type="button" hidden>🔊 Narrate this chapter</button>
+      <label class="toggle"><input type="checkbox" id="autoNarrate"> Auto-narrate</label>
+      <label class="toggle" id="handsFreeWrap"><input type="checkbox" id="handsFree"> Hands-free</label>
+    </div>
+  </div>
+
+  <!-- FEEDBACK -->
+  <div id="feedback" class="pause" hidden role="dialog" aria-modal="true" aria-labelledby="fbTitle">
+    <div class="pause-panel small-panel">
+      <header class="pause-head"><div><p class="eyebrow">[ BETA FEEDBACK ]</p><h2 id="fbTitle">What should change?</h2></div><button id="fbClose" class="btn" type="button">Close</button></header>
+      <div class="pause-body">
+        <p class="appearance">Bugs, confusing parts, things you loved, ideas. Every note gets read.</p>
+        <textarea id="fbText" rows="6" maxlength="4000" placeholder="e.g. The narrator voice was great, but chapter 3 forgot I had a shotgun…"></textarea>
+        <div class="decision-foot"><button id="fbSend" class="btn primary" type="button">Send feedback</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACCOUNT -->
+  <div id="account" class="pause" hidden role="dialog" aria-modal="true" aria-labelledby="acTitle">
+    <div class="pause-panel small-panel">
+      <header class="pause-head"><div><p class="eyebrow">[ ACCOUNT ]</p><h2 id="acTitle"></h2></div><button id="acClose" class="btn" type="button">Close</button></header>
+      <div id="acBody" class="pause-body"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="alert" hidden></div>
+</body>
+</html>

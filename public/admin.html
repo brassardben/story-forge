@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Story Forge Admin</title>
+  <link rel="icon" href="/favicon.svg">
+  <link rel="stylesheet" href="/forge.css">
+  <script src="/admin.js" defer></script>
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="/forge"><span class="sigil" aria-hidden="true">◆</span> Story Forge</a>
+    <nav class="nav"><a href="/forge" class="navlink">Back to the app</a></nav>
+    <div id="status" class="status"></div>
+  </header>
+  <main class="home admin">
+    <section class="intro">
+      <p class="eyebrow">[ ADMIN ]</p>
+      <h1>Beta control room</h1>
+    </section>
+
+    <section class="panel">
+      <h2>Invite testers</h2>
+      <form id="inviteForm" class="form" autocomplete="off">
+        <div class="grid2">
+          <div><label for="iNote">Who is it for?</label><input id="iNote" maxlength="80" placeholder="e.g. LitRPG Facebook group"></div>
+          <div><label for="iMax">How many people can use it?</label><input id="iMax" type="number" min="1" max="500" value="10"></div>
+        </div>
+        <button class="btn primary big" type="submit">Create invite code</button>
+      </form>
+      <div id="newInvite" class="invite-out" hidden></div>
+      <h3 class="admin-h3">Codes</h3>
+      <div id="invites"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Testers</h2>
+      <p class="hint" id="limitsNote"></p>
+      <div id="users"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Feedback</h2>
+      <div id="feedback"></div>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="alert" hidden></div>
+</body>
+</html>

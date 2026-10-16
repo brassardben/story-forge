@@ -1,0 +1,34 @@
+# One-click setup for Render (render.com): New > Blueprint > pick this repo.
+services:
+  - type: web
+    name: story-forge
+    runtime: node
+    plan: starter
+    region: virginia
+    buildCommand: echo "no build step"
+    startCommand: node server.mjs
+    healthCheckPath: /api/status
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: HOSTED
+        value: "1"
+      - key: DATA_DIR
+        value: /var/data
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ADMIN_CODE
+        sync: false
+      - key: LIMIT_CHAPTERS
+        value: "30"
+      - key: LIMIT_NARRATION
+        value: "30"
+      - key: LIMIT_PORTRAITS
+        value: "3"
+      - key: LIMIT_IDEAS
+        value: "15"
+    disk:
+      name: forge-data
+      mountPath: /var/data
+      sizeGB: 1
