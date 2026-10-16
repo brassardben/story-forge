@@ -3,12 +3,12 @@ services:
   - type: web
     name: story-forge
     runtime: node
-    plan: starter
+    plan: 0.5c-512mb
     region: virginia
     buildCommand: echo "no build step"
     startCommand: node server.mjs
     healthCheckPath: /api/status
-    autoDeploy: true
+    autoDeployTrigger: commit
     envVars:
       - key: NODE_VERSION
         value: "22"
