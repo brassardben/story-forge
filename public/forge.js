@@ -422,6 +422,14 @@ $('startOverBtn').addEventListener('click', () => {
     toast('Your settings are loaded. Change anything you want, then start again. The old story is still saved under My runs.');
   }, 50);
 });
+// ---------- beginner quick start ----------
+$('beginnerBtn').addEventListener('click', () => {
+  el.fWorld.value = 'earth'; syncWorld();
+  $('fFlavor').value = 'crawler'; for (const [id, v] of Object.entries(FLAVORS.crawler)) $(id).value = v;
+  el.fStyle.value = 'balanced'; $('fFlavor').value = 'custom';
+  el.fName.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => el.fName.focus(), 400);
+  toast('Beginner setup loaded. Type your name (and your town if you want), then hit start.');
+});
 // ---------- story flavor presets ----------
 const FLAVORS = {
   crawler: { fPov: 'first', fTone: 'darkcomedy', fPersonality: 'snarky', fStyle: 'lean' },
@@ -680,10 +688,11 @@ function listen(onText, label) {
   status(label);
   try { rec.start(); } catch { stopListening(); }
 }
-const NUMS = [['1', 'one', 'first', 'won', 'a'], ['2', 'two', 'second', 'to', 'too', 'b', 'bee'], ['3', 'three', 'third', 'tree', 'c', 'see', 'sea']];
+const NUMS = [['1', 'one', 'first', 'won', 'a'], ['2', 'two', 'second', 'to', 'too', 'b', 'bee'], ['3', 'three', 'third', 'tree', 'c', 'see', 'sea'], ['4', 'four', 'fourth', 'for', 'fore', 'd', 'dee']];
 function parseSpoken(t) {
   const s = t.toLowerCase().replace(/[^a-z0-9' ]/g, ' ')
-    .replace(/\b(option|number|choice|choose|pick|i'll|ill|i|go|with|the|take|do|let's|lets)\b/g, ' ').replace(/\s+/g, ' ').trim().replace(/^(first|second|third|last) one$/, '$1').replace(/^last$/, 'third');
+    .replace(/\b(option|number|choice|choose|pick|i'll|ill|i|go|with|the|take|do|let's|lets)\b/g, ' ').replace(/\s+/g, ' ').trim().replace(/^(first|second|third|fourth|last) one$/, '$1');
+  if (s === 'last') return { index: Math.max(0, (S.run ? latest().choices.length : 4) - 1) };
   const i = NUMS.findIndex(words => words.includes(s));
   return i >= 0 ? { index: i } : { custom: t.trim() };
 }
@@ -693,7 +702,7 @@ function listenForChoice() {
     const d = parseSpoken(text);
     if (d.index != null) { toast(`Heard: option ${d.index + 1}`); choose(d); }
     else if (d.custom.length >= 3) { el.customInput.value = d.custom; toast(`Heard: “${d.custom}”`); choose(d); }
-  }, '🎙 Listening… say 1, 2, 3 or your own move');
+  }, '🎙 Listening… say 1, 2, 3, 4 or your own move');
 }
 el.micBtn.addEventListener('click', () => {
   if (S.rec) return stopListening();
@@ -973,7 +982,7 @@ el.handsFree.addEventListener('change', () => {
   pref.set('handsFree', el.handsFree.checked);
   if (el.handsFree.checked) {
     if (!el.autoNarrate.checked) { el.autoNarrate.checked = true; pref.set('autoNarrate', true); }
-    toast('Hands-free on: after the choices are read, just say 1, 2, 3 or your own move.');
+    toast('Hands-free on: after the choices are read, just say 1, 2, 3, 4 or your own move.');
   } else stopListening();
 });
 if (!Speech) { el.handsFreeWrap.hidden = true; } else { el.micBtn.hidden = false; }

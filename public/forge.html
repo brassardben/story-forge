@@ -40,7 +40,7 @@
         <label for="jCode">Invite code</label>
         <input id="jCode" maxlength="40" placeholder="FORGE-XXXX" autocapitalize="characters" required>
         <label for="jName">Your name <span class="opt">first name or a nickname</span></label>
-        <input id="jName" maxlength="40" placeholder="e.g. Ben">
+        <input id="jName" maxlength="40" placeholder="e.g. Alex">
         <button class="btn primary big" type="submit">Enter the System</button>
         <p class="hint">Already joined on another device? Enter your <b>player code</b> instead (find it under 👤), and leave the name blank.</p>
       </form>
@@ -53,6 +53,12 @@
       <p class="eyebrow">[ SYSTEM INTEGRATION IMMINENT ]</p>
       <h1>Every legend starts at Level 1.</h1>
       <p class="lede">The world ends. The System arrives. Every chapter stops at a choice, and what you pick changes what happens next. Listen as you go, then replay your whole run as an audiobook.</p>
+      <details class="newbie">
+        <summary>New to LitRPG? Start here</summary>
+        <p>LitRPG is a story told like a video game. The world suddenly runs on game rules: you get a status screen, you level up by surviving and fighting, you earn skills, loot and a class, and a mysterious “System” keeps score (and usually has opinions about you). You don’t need to know anything else. The System explains the rules as you go.</p>
+        <p>Not sure what to pick? Use the beginner setup: a monster apocalypse in your hometown, a funny and mouthy System, and real danger.</p>
+        <button id="beginnerBtn" class="btn primary" type="button">Use the beginner setup</button>
+      </details>
     </section>
 
     <section id="runsPanel" class="panel" hidden>
@@ -66,7 +72,7 @@
         <div class="grid2">
           <div>
             <label for="fName">Hero’s name</label>
-            <input id="fName" maxlength="40" required placeholder="Ben">
+            <input id="fName" maxlength="40" required placeholder="e.g. Alex">
           </div>
           <div>
             <label for="fPronouns">Pronouns</label>
@@ -78,7 +84,7 @@
           </div>
         </div>
         <label for="fBackground">Your background <span class="opt">optional: it shapes your skills and instincts</span></label>
-        <input id="fBackground" maxlength="300" placeholder="e.g. Army SFC, 18 years in, unit armorer · ER nurse · diesel mechanic · high school QB">
+        <input id="fBackground" maxlength="300" placeholder="e.g. Army veteran · ER nurse · diesel mechanic · high school QB">
 
         <div class="grid2">
           <div>

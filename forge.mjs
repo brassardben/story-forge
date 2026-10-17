@@ -37,7 +37,7 @@ const ROMANCE = {
   steamy: 'Romance and desire are a real thread with adult characters: flirtation, chemistry, sensual tension and the emotional fallout of intimacy in a dying world. Intimate scenes build heat, then fade to black at the bedroom door. Some choices can involve the romance. Never the main focus.',
 };
 const STYLES = {
-  lean: 'Lean and punchy: short paragraphs, plain everyday words, action and dialogue first. One sharp detail beats three. Minimal scenery; describe only what matters right now. Almost no metaphors.',
+  lean: 'Lean and punchy: short paragraphs, plain everyday words, action, dialogue and the hero\'s thoughts first. One sharp detail beats three and scenery stays minimal, but never skimp on the hero\'s reactions, the System\'s voice, or the specifics of fights, skills and loot. Almost no metaphors.',
   balanced: 'Balanced: brisk pacing with a few well-chosen details per scene. Description only when it adds tension, character or something the player needs to know.',
   rich: 'Rich and descriptive: immersive atmosphere and inner thoughts, but every description still earns its place.',
 };
@@ -109,6 +109,8 @@ GENRE VOICE (how the best LitRPG reads; follow it in every tone):
 - Skills are written in brackets with a rarity or rank, e.g. [Ember Step (Uncommon)], and they can upgrade or evolve, sometimes with a choice between paths. Titles stack up and the hero notices how many they've collected.
 - Occasionally (not every chapter), a short scene break marked "--" can cut to an ally or rival reacting to the hero, to show how strange or scary the hero is becoming from the outside. Keep it brief and return to the hero.
 - The hero's fear and doubt show in quick flashes of thought, then they get back to work.
+- Use the genre's proven hooks when they fit: countdown timers, first-kill and first-to-do-it titles and bonuses, global announcements and leaderboards of who is ahead, hidden or unique classes and skills earned through clever or strange play, achievements for weird feats, tiered loot boxes, safe zones and shops with odd shopkeepers, other humans as both allies and the worst threat, boss fights that are really puzzles, and a rival who is always a step ahead. Give every chapter an edge: a real cost, a hard choice, a nasty surprise, or a reward the hero has to decide whether to trust.
+ONBOARDING (many players have never read LitRPG): in chapter 1, soon after the event begins, the System makes a clear integration announcement to everyone, in its personality: what is happening in in-world terms (as much as it chooses to reveal), the first objective with a deadline and a reward (for example survive the first 24 hours, reach a safe zone before nightfall, or make your first kill within the hour), and 2-4 basic rules (everyone gets a status screen, levels and stats make you stronger, classes are coming, death is permanent). Then over chapters 1-3, the first time each mechanic matters (status screen, XP and levels, stat points, skills, classes, quests), the System explains it in one or two plain lines. Never assume the reader knows genre jargon. If the world premise keeps the System hidden or delayed, deliver this orientation through clues and discoveries instead, at the premise's pace.
 Example of the rhythm (original, for style only; never reuse it):
   A raccoon in a crossing-guard vest sat on an overturned shopping cart, eating a tube of cookie dough.
   [system] Sergeant Pickles – Raccoon Hustler. Level 12. This is a Non-Combatant NPC. He runs the only store for nine miles and he knows it. Do not let him see your wallet.
@@ -139,7 +141,7 @@ RULES
 - Companions: the companions list holds party members and any sidekick or companion who travels with the hero (name, kind such as human or beast or AI familiar, role, level, bond 0-100, condition). Bond rises and falls with the hero's choices. Companions have personalities, opinions and their own small arcs, and they can level up.
 - Consequences persist. Honor STORY SO FAR, MEMORY and the CODEX: allies remember kindness, enemies remember betrayal, lost things stay lost, wounds take time. Avoid killing the hero, but failure has real costs.
 - Honor the player's decision faithfully. Open the chapter by playing it out. If the player typed their own action, carry it out as written when physically possible; reckless actions can fail with consequences. Never ignore it or decide for them.
-- End every chapter on a tense, unresolved decision point. Then give exactly 3 choices: under 15 words each, written as imperative actions ("Charge the hound before it calls the pack"), clearly different from each other (for example bold, cunning, and a risky or moral wildcard). Do not number them.
+- End every chapter on a tense, unresolved decision point. Then give exactly 4 choices: under 15 words each, written as imperative actions ("Charge the hound before it calls the pack"), clearly different from each other: one bold, one cunning, one careful or curious (investigate, ask, scout, use a skill or item in a clever way), and one wildcard (risky, moral, or funny). Do not number them.
 
 STORY DIRECTOR
 - You also keep a hidden plan, the bible, which the player never sees. Use it to plan ahead so the world keeps growing and the story never runs out of road.
@@ -374,7 +376,7 @@ Continue the story from this decision.`;
         }
         return seg;
       }).filter(x => x.text).slice(0, 160);
-    const choices = list(data.choices, 3, 160);
+    const choices = list(data.choices, 4, 160);
     if (!segments.length || choices.length < 2) fail('The chapter came back incomplete. Please try again.', 502);
     return {
       chapter: {
@@ -485,7 +487,7 @@ Continue the story from this decision.`;
       });
     }
     if (withChoices && !c.decision && !(await exists(qFile))) {
-      const words = ['One', 'Two', 'Three'];
+      const words = ['One', 'Two', 'Three', 'Four'];
       const text = `${c.decider ? `${c.decider}, what do you do?` : 'What do you do?'} ${c.choices.map((x, i) => `${words[i]}: ${clip(x)}.`).join(' ')} Or say your own move.`;
       jobs.push(async () => writeFile(qFile, await speak(text, v.narrator, v.narStyle)));
     }
