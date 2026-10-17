@@ -105,6 +105,9 @@ GENRE VOICE (how the best LitRPG reads; follow it in every tone):
 - Companions are big personalities with their own running jokes and quirks, and they get some of the best lines.
 - Heart under the jokes: loyalty, grief, promises kept at a cost, hard moral calls (help the scared creature or take the loot). The story can be a tragedy wearing a funny hat; let the quiet moments land.
 - Mysteries: plant strange details and lore hooks constantly. Answer some quickly, leave others hanging for many chapters, and pay them off.
+- Figure things out on the page. When something new or strange happens (a skill acts weird, a status changes, a rule makes no sense), the hero theorizes briefly, then tests it directly, and the reader sees the result: "Rather than spiral into theories, I did the obvious thing. I used the skill." Experiments can surprise them. This is where readers have the most fun.
+- Skills are written in brackets with a rarity or rank, e.g. [Ember Step (Uncommon)], and they can upgrade or evolve, sometimes with a choice between paths. Titles stack up and the hero notices how many they've collected.
+- Occasionally (not every chapter), a short scene break marked "--" can cut to an ally or rival reacting to the hero, to show how strange or scary the hero is becoming from the outside. Keep it brief and return to the hero.
 - The hero's fear and doubt show in quick flashes of thought, then they get back to work.
 Example of the rhythm (original, for style only; never reuse it):
   A raccoon in a crossing-guard vest sat on an overturned shopping cart, eating a tube of cookie dough.
@@ -299,7 +302,7 @@ export function createForge({ root, savesDir = path.join(root, 'saves'), port, a
   function settingBlock(s) {
     const sys = PERSONALITIES[s.personality] || PERSONALITIES.auto;
     const lines = [
-      `POINT OF VIEW: ${s.pov === 'first' ? 'first person, past tense ("I"). The hero narrates their own story; thought segments stay in present tense, like the hero talking to themselves.' : 'second person, present tense ("you"). The reader is the hero.'}`,
+      `POINT OF VIEW: ${s.pov === 'first' ? 'first person, past tense ("I"). The hero narrates their own story; thought segments stay in present tense, like the hero talking to themselves.' : s.pov === 'third' ? `third person, past tense, close on ${s.name} ("he/she/they"), with their thoughts in thought segments.` : 'second person, present tense ("you"). The reader is the hero.'}`,
       `WORLD: ${worldOf(s)}`,
       `PRESENT DAY: ${new Date().getFullYear()}${s.world === 'vanished' ? `; STORY YEAR: ${(s.year || new Date().getFullYear()) + 100} (use exactly this year)` : ''}`,
       `TONE: ${TONES[s.tone] || TONES.gritty}`,
@@ -683,7 +686,7 @@ Continue the story from this decision.`;
         name: txt(data.name, 40), pronouns: txt(data.pronouns, 30), cls: txt(data.cls, 40),
         world: WORLDS[data.world] || data.world === 'custom' ? data.world : 'earth', place: txt(data.place, 200), landmarks: txt(data.landmarks, 300),
         premise: data.world === 'custom' ? txt(data.premise, 1500) : '',
-        tone: TONES[data.tone] ? data.tone : 'gritty', style: STYLES[data.style] ? data.style : 'lean', pov: data.pov === 'first' ? 'first' : 'second',
+        tone: TONES[data.tone] ? data.tone : 'gritty', style: STYLES[data.style] ? data.style : 'lean', pov: ['first', 'third'].includes(data.pov) ? data.pov : 'second',
         rating: RATINGS[data.rating] && data.rating !== 'pg' ? data.rating : 'r', romance: ROMANCE[data.romance] ? data.romance : 'off',
         enemies: [...new Set(Array.isArray(data.enemies) ? data.enemies : [])].filter(e => ENEMIES[e]),
         words: WORDS.includes(Number(data.words)) ? Number(data.words) : 900,
