@@ -382,6 +382,11 @@ function renderChapter(c) {
   const body = [];
   for (const s of c.segments) {
     if (s.kind === 'system') body.push(h('div', { class: 'sysbox' }, h('span', { class: 'sys-label' }, sysName()), s.text));
+    else if (s.kind === 'thought') {
+      const line = h('p', { class: 'thought' }, s.text);
+      const lastBlock = body.at(-1);
+      if (lastBlock?.classList?.contains('prose')) lastBlock.append(line); else body.push(h('div', { class: 'prose' }, line));
+    }
     else if (s.kind === 'dialogue') {
       const line = h('p', { class: 'line' }, h('span', { class: 'spk' }, s.speaker), `“${s.text}”`);
       const lastBlock = body.at(-1);
@@ -614,7 +619,7 @@ el.textBtn.addEventListener('click', () => {
   const r = S.run, lines = [r.title, '='.repeat(r.title.length), ''];
   for (const c of r.chapters) {
     lines.push(`Chapter ${c.n}: ${c.title}`, '');
-    for (const s of c.segments) lines.push(s.kind === 'system' ? `[ ${s.text.replace(/\n/g, ' | ')} ]` : s.kind === 'dialogue' ? `${s.speaker}: “${s.text}”` : s.text, '');
+    for (const s of c.segments) lines.push(s.kind === 'system' ? `[ ${s.text.replace(/\n/g, ' | ')} ]` : s.kind === 'dialogue' ? `${s.speaker}: “${s.text}”` : s.kind === 'thought' ? `_${s.text}_` : s.text, '');
     if (c.decision) lines.push(`>> You chose: ${c.decision.text}`, '');
   }
   const url = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' }));

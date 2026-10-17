@@ -66,7 +66,7 @@ const OPENINGS = {
   default: "open on a grounded, ordinary moment, then the catastrophe and the System's arrival, the hero's first desperate fight to survive, and the first System notifications.",
   dream: 'open on an ordinary evening and the hero falling asleep, then a "dream" that feels wrong: a glitch only the hero notices, the first sign it is a simulation, the hidden System interface revealing itself to them alone, and the first danger from something that hunts dreamers who wake up inside.',
   turning: 'open on a grounded, ordinary moment, then a deep tremor and the moment something inside the Earth wakes, the first notifications explaining that this world\'s turn has come, and the hero\'s first fight to survive.',
-  vanished: 'open with the hero waking at their birthplace (the HERO\'S HOME location, at the hospital or house where they were born if known) a hundred years in the future: the first disorienting minutes, the silence, the overgrowth, familiar places made strange, the first clue to the year and to the fact that everyone is gone. End on the first sign that they are not alone.',
+  vanished: 'open with the hero waking at the HERO\'S HOME location exactly as given (an address is the family house, not a hospital) a hundred years in the future: the first disorienting minutes, the silence, the overgrowth, familiar places made strange, the first clue to the year and to the fact that everyone is gone. End on the first sign that they are not alone.',
   cataclysm: 'open on a grounded, ordinary moment, then the catastrophe hitting, the first desperate hours of survival, and a hint that the disaster is not natural.',
   space: 'open on a grounded, ordinary moment, then the hero being taken, waking somewhere utterly alien, the first System notifications, and a first desperate fight or escape among alien beings.',
 };
@@ -89,15 +89,18 @@ const NARRATOR_COMEDY = 'Read as an immersive audiobook narrator for a darkly co
 
 const INSTRUCTIONS = `You are the narrator and game master of an interactive LitRPG story. The reader is the main character.
 Write in second person, present tense ("you"), in the TONE and STYLE given, with natural dialogue. It will be read aloud, so favor rhythm and clarity.
+INNER MONOLOGUE (this is what makes LitRPG work): the hero is constantly thinking, and the reader hears it. Put the hero's thoughts in segments of kind "thought": first person, present tense, in the hero's own voice, usually one to three short sentences ("Okay. Okay. Don't panic. That thing has three legs, so it can't turn fast."). Use them to react, swear, crack dark jokes, panic, and above all to reason: weigh options out loud, count supplies, test theories about how the System works, notice patterns, second-guess, make plans and change them. Early chapters, especially chapter 1, are full of it because the hero is freaking out. Aim for a thought every few paragraphs, never long speeches. Thoughts are not spoken aloud; for thought segments speaker is the hero's name and gender is the hero's.
 WRITING RULES (every style): plain, concrete language a listener follows on first hearing. At most one figure of speech per paragraph, never stacked, never mixed or nonsensical ("the world waits with dead eyes" and "nightmare-ville riffed through the wiring" are the kind of lines to never write). Prefer what the hero sees, hears, does and says.
 LOGIC: the hero only knows what they have seen, read, been told by someone actually present, or been told by the System. Never "rumors" or "stories" without a source in the scene; if information is needed, deliver it through the System, a note, a recording, a sign or a person who is there. Keep track of who is present.
 LOCAL DETAILS: use real places sparingly: one or two well-known, accurate references per chapter (the hospital, the lake, a main road), never a list of street names, and never local trivia the hero recites. If unsure a detail is real, keep it generic.
+BANNED (cliché filler, never write these or close variants): crisp air, crackling (anything but fire or electricity), moonlight bathing or spilling, moss or weeds pushing through cracks, eerie or deafening silence, the air thick with anything, shivers or chills down the spine, heart pounding in the chest, breath you didn't know you were holding, time standing still, a testament to, palpable, tapestry, symphony, dance of, little did you know, you can't help but. No weather, light or smell description unless it changes what the hero does next.
+ACCURACY: setup facts are literal. A street address is a house (the family home) unless the player says otherwise, never a hospital or business. Never contradict the setup, MEMORY or earlier chapters; if a setup detail seems odd, use it as written rather than reinterpreting it.
 Never pad: trust the reader, don't explain what they can infer, don't stack adjectives or describe scenery that doesn't matter to the moment, don't restate feelings or recap what just happened. Keep the story moving.
 
 RULES
 - A System governs the world. Its NAME and PERSONALITY are given under SYSTEM: always call it by that name, and let the personality show in its notifications. It speaks through short notifications. Put each notification in its own segment of kind "system", e.g. "Level Up! You have reached Level 3." or "Skill Acquired: Iron Skin (Rank F)". Keep system segments to 1-4 short lines. Everything else is kind "prose", one or a few paragraphs per segment (separate paragraphs with a blank line). Every line a character speaks aloud (including the hero) is its own segment of kind "dialogue": text is ONLY the spoken words with no quotation marks and no tags, speaker is the character's name (the hero's name for the hero), and gender is male, female or other (other for creatures, machines and unknowns). Put tags and action around it in prose ("she says, already reloading"). For prose and system segments, speaker is "" and gender is "none".
 - Progression is earned. The hero starts weak. Levels, skills, items and titles come from effort, risk and clever choices: usually 0-2 level ups per chapter, faster early on. Never hand out overwhelming power.
-- The sheet you return is the source of truth. Start from CURRENT SHEET and change only what this chapter's events justify. Announce every change in the story, usually with a system segment. Health and energy drop with injury and exertion and recover with rest. The class field is "Unclassed" until the System grants a class.
+- The sheet you return is the source of truth. Start from CURRENT SHEET and change only what this chapter's events justify. Announce every change in the story, usually with a system segment. Health and energy drop with injury and exertion and recover with rest. The class field is "Unclassed" until the System grants a class. Gaining a class is always an on-page moment, never assumed: the System presents a class selection (3-4 options with one-line descriptions), and the hero thinks through each option in thought segments, weighing it against their situation and background, before choosing. If a PLANNED CLASS is given, it is among the options and the hero chooses it, for reasons that make sense in the story; it happens in chapter 1 or 2. If there is no planned class, let the selection happen when the story earns it and make it the chapter-ending decision, with the three choices being the three class options.
 - Stat points: every level up adds 3 to unspent_points (announce it). NEVER spend unspent_points yourself; the player allocates them. Stats can still rise occasionally from training, items or events. Write the hero according to their stats (high agility moves fast, high intelligence notices patterns, and so on).
 - Gear: equipment holds what is equipped in each slot ("" when empty); inventory holds carried items that are not equipped. When the hero gains gear, equip it in a sensible slot if it is clearly better, otherwise put it in inventory. Respect gear changes the player made. Describe and use the equipped gear in the story. appearance: one or two sentences on how the hero currently looks, including visible gear and scars.
 - Crafting and upgrades: gear can be modified and improved. The world holds mod kits, enhancer cores, boosters, schematics and workbenches or crafting stations. Knowledge matters: learning how things work (often as skills) unlocks better crafting. When the player uses an item on gear or on themselves (PLAYER ACTIONS), resolve it in the story and update the item's name to reflect it (e.g. "Combat Knife" becomes "Combat Knife +1 (Serrated Edge)") and its effect. Vehicles can be found, repaired and modified; the vehicle slot holds the current one.
@@ -122,7 +125,7 @@ STORY DIRECTOR
 - codex: everything the player has DISCOVERED so far (people, creatures, factions, places, items, lore), each with a short note in the player's knowledge. Keep entries from before, add new ones, update notes. Never reveal secrets in the codex before the story reveals them.
 - If the player made changes since the last chapter (PLAYER ACTIONS) or asked for something (PLAYER'S REQUEST), work them in naturally. The PLAYER'S VISION outranks your own plans: build the bible around it.
 
-FIELDS: chapter_title: short and evocative. series_title: a short title for the whole saga (keep the same one after chapter 1). story_so_far: a running summary of the WHOLE story to date, under 250 words. memory: up to 25 short facts that must stay consistent (names, relationships, promises, enemies, places, injuries, debts).
+FIELDS: continuity_check (fill this FIRST, before writing; the player never sees it): in under 80 words, list the setup facts, MEMORY items and recent events this chapter must respect (where the hero is, who is present, what they know, injuries, gear), and anything you must be careful not to contradict. Then write the chapter to match it. chapter_title: short and evocative. series_title: a short title for the whole saga (keep the same one after chapter 1). story_so_far: a running summary of the WHOLE story to date, under 250 words. memory: up to 25 short facts that must stay consistent (names, relationships, promises, enemies, places, injuries, debts).
 - Follow the CONTENT RATING and ROMANCE settings exactly. Hard limits regardless of settings: romance and sexual content only ever involve adults; never anything sexual involving minors; no depicted sexual violence; intimate scenes always fade to black, with no explicit sexual description. If PARTY includes children, keep everything family-friendly and keep the children safe from graphic harm.`;
 
 const str = { type: 'string' }, int = { type: 'integer' }, strs = { type: 'array', items: { type: 'string' } };
@@ -138,8 +141,8 @@ const sheetSchema = obj({
   companions: { type: 'array', items: obj({ name: str, kind: str, role: str, level: int, bond: int, condition: str }) },
 });
 const chapterSchema = obj({
-  series_title: str, chapter_title: str,
-  segments: { type: 'array', items: obj({ kind: { type: 'string', enum: ['prose', 'system', 'dialogue'] }, speaker: str, gender: { type: 'string', enum: ['male', 'female', 'other', 'none'] }, text: str }) },
+  continuity_check: str, series_title: str, chapter_title: str,
+  segments: { type: 'array', items: obj({ kind: { type: 'string', enum: ['prose', 'system', 'dialogue', 'thought'] }, speaker: str, gender: { type: 'string', enum: ['male', 'female', 'other', 'none'] }, text: str }) },
   choices: strs, sheet: sheetSchema, story_so_far: str, memory: strs,
   bible: obj({ arc: str, threats: strs, secrets: strs, next_beats: strs }),
   inbox: { type: 'array', items: obj({ from: str, text: str }) },
@@ -198,7 +201,7 @@ const cleanCodex = (c, prev) => {
   for (const e of prev) if (!seen.has(e.name.toLowerCase()) && out.length < 80) out.push(e);
   return out;
 };
-const plain = c => c.segments.map(s => (s.kind === 'system' ? `[${s.text}]` : s.kind === 'dialogue' ? `${s.speaker}: "${s.text}"` : s.text)).join('\n\n');
+const plain = c => c.segments.map(s => (s.kind === 'system' ? `[${s.text}]` : s.kind === 'dialogue' ? `${s.speaker}: "${s.text}"` : s.kind === 'thought' ? `(thinking) ${s.text}` : s.text)).join('\n\n');
 const clip = s => s.replace(/[.!?\s]+$/, '');
 
 const NO_LIMITS = { check() {}, add() {} };
@@ -239,7 +242,7 @@ export function createForge({ root, savesDir = path.join(root, 'saves'), port, a
   function state(run) {
     const last = run.chapters.at(-1);
     return last ? { sheet: last.sheet, summary: last.summary, memory: last.memory, bible: last.bible || emptyBible(), codex: last.codex || [] }
-      : { sheet: startSheet(run.setup.name, run.setup.cls), summary: '', memory: [], bible: emptyBible(), codex: [] };
+      : { sheet: startSheet(run.setup.name, ''), summary: '', memory: [], bible: emptyBible(), codex: [] };
   }
   async function withLock(name, busyMsg, fn) {
     if (locks[name]) fail(busyMsg, 429);
@@ -283,6 +286,7 @@ export function createForge({ root, savesDir = path.join(root, 'saves'), port, a
       `THREATS: ${threatsOf(s)}`,
       `SYSTEM: its name is "${s.systemName || 'The System'}"; personality: ${sys.text}.`,
     ];
+    if (s.cls) lines.push(`PLANNED CLASS: ${s.cls} (if the sheet is still Unclassed, the class selection scene is due now).`);
     if (s.place) lines.push(`HERO'S HOME: ${s.place}${s.landmarks ? `; local spots: ${s.landmarks}` : ''}`);
     if (s.party?.length) {
       lines.push(`PARTY: the hero is joined from the start by ${s.party.map(m => `${m.name}${m.kid ? ' (a child)' : ''}`).join(', ')}. These are real people listening and playing along. Give each a real role, personality, moments to shine, and occasional System notifications of their own; keep them in the companions list.`);
@@ -307,7 +311,7 @@ export function createForge({ root, savesDir = path.join(root, 'saves'), port, a
     if (n === 1) {
       input = `START A NEW STORY. Write chapter 1 (about ${s.words} words).
 Hero's name: ${s.name}${s.pronouns ? `\nHero's pronouns: ${s.pronouns}` : ''}
-Starting class: ${s.cls || 'none yet. The System assigns a fitting class during this chapter or a later one, based on how the hero survives.'}
+Class: the hero starts Unclassed.${s.cls ? ` PLANNED CLASS: ${s.cls}. Earn it on the page with a System class selection in chapter 1 or 2, as the rules describe.` : ' The System offers a class selection when the story earns it.'}
 ${settingBlock(s)}
 Where the hero is from / where it begins: ${s.place ? `${s.place}. Ground the opening in this real place: use authentic, recognizable local details (geography, weather, roads, landmarks, the feel of the area) that you are confident are real. Prefer well-known roads and landmarks over guessed street names. Do not invent claims about real, named private people.` : 'your choice; make it ordinary and specific'}${s.landmarks ? `\nLocal spots the player wants in the story (use them by name, accurately, early on and whenever the story returns home): ${s.landmarks}` : ''}
 Chapter 1: ${OPENINGS[s.world] || OPENINGS.default} End at a tense decision.
@@ -332,8 +336,9 @@ Continue the story from this decision.`;
     const data = await structured(input, 'litrpg_chapter', chapterSchema, 14000);
     const segments = (Array.isArray(data.segments) ? data.segments : [])
       .map(x => {
-        const kind = ['system', 'dialogue'].includes(x?.kind) ? x.kind : 'prose';
+        const kind = ['system', 'dialogue', 'thought'].includes(x?.kind) ? x.kind : 'prose';
         const seg = { kind, text: txt(x?.text, 12000) };
+        if (kind === 'thought') seg.text = seg.text.replace(/^["“”'*_]+|["“”'*_]+$/g, '').trim();
         if (kind === 'dialogue') {
           seg.text = seg.text.replace(/^["“”']+|["“”']+$/g, '').trim();
           seg.speaker = txt(x?.speaker, 60) || 'Stranger';
@@ -433,6 +438,10 @@ Continue the story from this decision.`;
       for (const s of c.segments) {
         let voice = v.narrator, style = v.narStyle, text = s.text;
         if (s.kind === 'system') { voice = v.sys; style = v.sysStyle; }
+        if (s.kind === 'thought' && charVoices) {
+          voice = castVoice(run, run.setup.name, run.setup.pronouns === 'she/her' ? 'female' : run.setup.pronouns === 'they/them' ? 'other' : 'male');
+          style = `This is ${run.setup.name}'s private inner thought, not spoken to anyone: quieter and closer, quick, natural and honest, like talking to yourself under your breath.${ACCENT}`;
+        }
         if (s.kind === 'dialogue') {
           if (charVoices) {
             voice = castVoice(run, s.speaker, s.gender);
