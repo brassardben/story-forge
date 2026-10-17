@@ -173,7 +173,7 @@ const chapterSchema = obj({
 const ideasSchema = obj({ ideas: { type: 'array', items: obj({ title: str, pitch: str }) } });
 
 const num = (v, d = 0) => (Number.isFinite(v) ? Math.max(0, Math.min(999999, Math.round(v))) : d);
-const txt = (v, max) => String(v ?? '').trim().slice(0, max);
+const txt = (v, max) => String(v ?? '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').trim().slice(0, max);
 const list = (v, n, max) => (Array.isArray(v) ? v : []).slice(0, n).map(x => txt(x, max)).filter(Boolean);
 const emptyGear = () => Object.fromEntries(SLOTS.map(k => [k, '']));
 const emptyBible = () => ({ arc: '', threats: [], secrets: [], next_beats: [] });
