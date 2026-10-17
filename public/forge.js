@@ -312,6 +312,7 @@ function restoreSetup() {
   const s = pref.get('lastSetup', null);
   syncWorld();
   if (!s) return;
+  el.partyList.replaceChildren();
   el.fName.value = s.name || ''; el.fPronouns.value = s.pronouns || 'he/him'; el.fWorld.value = s.world || 'earth';
   el.fPlace.value = s.place || ''; el.fLandmarks.value = s.landmarks || ''; el.fBackground.value = s.background || ''; el.fFamily.value = s.family || 'none'; el.fFamilyDesc.value = s.familyDesc || ''; syncFamily(); el.fWords.value = String(s.words || 900); el.fVoice.value = s.voice || 'onyx'; el.fSysVoice.value = s.sysVoice || 'alloy'; el.fCharVoices.checked = s.charVoices !== false;
   el.fClass.value = s.clsSelect || ''; el.fClassCustom.hidden = el.fClass.value !== '__custom';
@@ -404,6 +405,23 @@ function renderChapter(c) {
     c.decision ? h('div', { class: 'chose' }, h('b', {}, c.decision.by && c.decision.by !== S.run.setup.name ? `${c.decision.by} chose` : 'You chose'), h('span', {}, c.decision.text)) : null,
   );
 }
+// ---------- start over with the same settings ----------
+$('startOverBtn').addEventListener('click', () => {
+  if (!S.run) return;
+  const s = S.run.setup;
+  const hasOpt = (sel, v) => [...sel.options].some(o => o.value === v);
+  pref.set('lastSetup', {
+    ...s, clsSelect: !s.cls ? '' : hasOpt(el.fClass, s.cls) ? s.cls : '__custom',
+    sysSelect: hasOpt(el.fSysName, s.systemName || 'The System') ? (s.systemName || 'The System') : '__custom',
+    ratingPick: s.rating, romancePick: s.romance, flavor: s.flavor || 'custom', advancedOpen: true,
+  });
+  location.hash = '';
+  setTimeout(() => {
+    restoreSetup();
+    el.newForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    toast('Your settings are loaded. Change anything you want, then start again. The old story is still saved under My runs.');
+  }, 50);
+});
 // ---------- story flavor presets ----------
 const FLAVORS = {
   crawler: { fPov: 'first', fTone: 'darkcomedy', fPersonality: 'snarky', fStyle: 'lean' },
