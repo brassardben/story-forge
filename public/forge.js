@@ -282,7 +282,7 @@ el.newForm.addEventListener('submit', async e => {
   const cls = el.fClass.value === '__custom' ? el.fClassCustom.value.trim() : el.fClass.value;
   const body = {
     name: el.fName.value.trim(), pronouns: el.fPronouns.value, world: el.fWorld.value, place: el.fPlace.value.trim(), landmarks: el.fLandmarks.value.trim(),
-    premise: el.fPremise.value.trim(), tone: el.fTone.value, style: el.fStyle.value, rating: el.fRating.value, romance: el.fRomance.value, enemies: enemyBoxes().filter(b => b.checked).map(b => b.value),
+    premise: el.fPremise.value.trim(), tone: el.fTone.value, style: el.fStyle.value, pov: $('fPov').value, rating: el.fRating.value, romance: el.fRomance.value, enemies: enemyBoxes().filter(b => b.checked).map(b => b.value),
     cls, words: Number(el.fWords.value), voice: el.fVoice.value, sysVoice: el.fSysVoice.value, charVoices: el.fCharVoices.checked,
     systemName: el.fSysName.value === '__custom' ? el.fSysNameCustom.value.trim() : el.fSysName.value,
     personality: el.fPersonality.value, companion: el.fCompanion.value, companionDesc: el.fCompanionDesc.value.trim(),
@@ -316,7 +316,7 @@ function restoreSetup() {
   el.fPlace.value = s.place || ''; el.fLandmarks.value = s.landmarks || ''; el.fBackground.value = s.background || ''; el.fFamily.value = s.family || 'none'; el.fFamilyDesc.value = s.familyDesc || ''; syncFamily(); el.fWords.value = String(s.words || 900); el.fVoice.value = s.voice || 'onyx'; el.fSysVoice.value = s.sysVoice || 'alloy'; el.fCharVoices.checked = s.charVoices !== false;
   el.fClass.value = s.clsSelect || ''; el.fClassCustom.hidden = el.fClass.value !== '__custom';
   if (!el.fClassCustom.hidden) el.fClassCustom.value = s.cls || '';
-  el.fPremise.value = s.premise || ''; el.fTone.value = s.tone || 'gritty'; el.fStyle.value = s.style || 'lean'; el.fRating.value = s.rating || 'r'; el.fRomance.value = s.romance || 'off';
+  el.fPremise.value = s.premise || ''; el.fTone.value = s.tone || 'gritty'; el.fStyle.value = s.style || 'lean'; $('fPov').value = s.pov || 'first'; el.fRating.value = s.rating || 'r'; el.fRomance.value = s.romance || 'off';
   for (const b of enemyBoxes()) b.checked = (s.enemies || []).includes(b.value);
   if (s.ratingPick) el.fRating.value = s.ratingPick === 'pg' ? 'r' : s.ratingPick;
   if (s.romancePick) el.fRomance.value = s.romancePick;

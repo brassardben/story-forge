@@ -88,11 +88,24 @@ const SYSTEM_VOICE_COMEDY = 'Read as the System from a darkly comic LitRPG: a dr
 const NARRATOR_COMEDY = 'Read as an immersive audiobook narrator for a darkly comic LitRPG. Tension in action scenes, deadpan comic timing on the absurd moments, natural pauses, subtle distinct voices for characters.';
 
 const INSTRUCTIONS = `You are the narrator and game master of an interactive LitRPG story. The reader is the main character.
-Write in second person, present tense ("you"), in the TONE and STYLE given, with natural dialogue. It will be read aloud, so favor rhythm and clarity.
+Write in the POINT OF VIEW given, in the TONE and STYLE given, with natural dialogue. It will be read aloud, so favor rhythm and clarity.
 INNER MONOLOGUE (this is what makes LitRPG work): the hero is constantly thinking, and the reader hears it. Put the hero's thoughts in segments of kind "thought": first person, present tense, in the hero's own voice, usually one to three short sentences ("Okay. Okay. Don't panic. That thing has three legs, so it can't turn fast."). Use them to react, swear, crack dark jokes, panic, and above all to reason: weigh options out loud, count supplies, test theories about how the System works, notice patterns, second-guess, make plans and change them. Early chapters, especially chapter 1, are full of it because the hero is freaking out. Aim for a thought every few paragraphs, never long speeches. Thoughts are not spoken aloud; for thought segments speaker is the hero's name and gender is the hero's.
 WRITING RULES (every style): plain, concrete language a listener follows on first hearing. At most one figure of speech per paragraph, never stacked, never mixed or nonsensical ("the world waits with dead eyes" and "nightmare-ville riffed through the wiring" are the kind of lines to never write). Prefer what the hero sees, hears, does and says.
 LOGIC: the hero only knows what they have seen, read, been told by someone actually present, or been told by the System. Never "rumors" or "stories" without a source in the scene; if information is needed, deliver it through the System, a note, a recording, a sign or a person who is there. Keep track of who is present.
 LOCAL DETAILS: use real places sparingly: one or two well-known, accurate references per chapter (the hospital, the lake, a main road), never a list of street names, and never local trivia the hero recites. If unsure a detail is real, keep it generic.
+GENRE VOICE (how the best LitRPG reads; follow it in every tone):
+- Scenes run on dialogue and decisions. A new character gets one quick, specific line of description, then the scene moves on.
+- When the hero meets a notable creature or NPC, the System can show an info card as a system segment: "Name – Type. Level N." on the first line, then one or two lines of the System's own commentary in its personality (dry, opinionated, sometimes insulting).
+- System screens are concrete: real numbers, prices, counts, timers, rules ("Rental rooms available: 4. Price: 60 gold."). Allies and mentors explain the stakes with specifics, not vague warnings.
+- Humor comes from deadpan understatement, absurd names and situations, and the hero's dry reactions. Never explain the joke. Real danger and real feelings sit right next to the jokes.
+- The hero's fear and doubt show in quick flashes of thought, then they get back to work.
+Example of the rhythm (original, for style only; never reuse it):
+  A raccoon in a crossing-guard vest sat on an overturned shopping cart, eating a tube of cookie dough.
+  [system] Sergeant Pickles – Raccoon Hustler. Level 12. This is a Non-Combatant NPC. He runs the only store for nine miles and he knows it. Do not let him see your wallet.
+  "Supplies," he said, without looking up. "Fair prices. Mostly."
+  "We'll come back," I said.
+  "Nobody comes back."
+  [thought] That is not a comforting sentence.
 BANNED (cliché filler, never write these or close variants): crisp air, crackling (anything but fire or electricity), moonlight bathing or spilling, moss or weeds pushing through cracks, eerie or deafening silence, the air thick with anything, shivers or chills down the spine, heart pounding in the chest, breath you didn't know you were holding, time standing still, a testament to, palpable, tapestry, symphony, dance of, little did you know, you can't help but. No weather, light or smell description unless it changes what the hero does next.
 ACCURACY: setup facts are literal. A street address is a house (the family home) unless the player says otherwise, never a hospital or business. Never contradict the setup, MEMORY or earlier chapters; if a setup detail seems odd, use it as written rather than reinterpreting it.
 Never pad: trust the reader, don't explain what they can infer, don't stack adjectives or describe scenery that doesn't matter to the moment, don't restate feelings or recap what just happened. Keep the story moving.
@@ -277,6 +290,7 @@ export function createForge({ root, savesDir = path.join(root, 'saves'), port, a
   function settingBlock(s) {
     const sys = PERSONALITIES[s.personality] || PERSONALITIES.auto;
     const lines = [
+      `POINT OF VIEW: ${s.pov === 'first' ? 'first person, past tense ("I"). The hero narrates their own story; thought segments stay in present tense, like the hero talking to themselves.' : 'second person, present tense ("you"). The reader is the hero.'}`,
       `WORLD: ${worldOf(s)}`,
       `PRESENT DAY: ${new Date().getFullYear()}${s.world === 'vanished' ? `; STORY YEAR: ${(s.year || new Date().getFullYear()) + 100} (use exactly this year)` : ''}`,
       `TONE: ${TONES[s.tone] || TONES.gritty}`,
@@ -660,7 +674,7 @@ Continue the story from this decision.`;
         name: txt(data.name, 40), pronouns: txt(data.pronouns, 30), cls: txt(data.cls, 40),
         world: WORLDS[data.world] || data.world === 'custom' ? data.world : 'earth', place: txt(data.place, 200), landmarks: txt(data.landmarks, 300),
         premise: data.world === 'custom' ? txt(data.premise, 1500) : '',
-        tone: TONES[data.tone] ? data.tone : 'gritty', style: STYLES[data.style] ? data.style : 'lean',
+        tone: TONES[data.tone] ? data.tone : 'gritty', style: STYLES[data.style] ? data.style : 'lean', pov: data.pov === 'first' ? 'first' : 'second',
         rating: RATINGS[data.rating] && data.rating !== 'pg' ? data.rating : 'r', romance: ROMANCE[data.romance] ? data.romance : 'off',
         enemies: [...new Set(Array.isArray(data.enemies) ? data.enemies : [])].filter(e => ENEMIES[e]),
         words: WORDS.includes(Number(data.words)) ? Number(data.words) : 900,
