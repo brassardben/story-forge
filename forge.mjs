@@ -312,6 +312,8 @@ export function createForge({ root, savesDir = path.join(root, 'saves'), port, a
       `THREATS: ${threatsOf(s)}`,
       `SYSTEM: its name is "${s.systemName || 'The System'}"; personality: ${sys.text}.`,
     ];
+    if (s.flavor === 'crawler') lines.push(`FLAVOR: crawler chaos. Lean hardest on the System as a mouthy, opinionated character (long gossipy inspection cards, punny quests, big rule announcements), absurd situations and creatures, deadpan humor, and loyalty and grief underneath. Danger is real and the world is unfair on purpose.`);
+    if (s.flavor === 'hunter') lines.push(`FLAVOR: hunter's path. Lean hardest on a calm, confident, sharp hero who studies how the System works, theorizes and runs experiments on skills and abilities, evolves skills through clever choices, and grows into something others find unsettling. Humor is dry and comes from side characters' reactions. Occasional short cutaways show allies or rivals sizing the hero up.`);
     if (s.cls) lines.push(`PLANNED CLASS: ${s.cls} (if the sheet is still Unclassed, the class selection scene is due now).`);
     if (s.place) lines.push(`HERO'S HOME: ${s.place}${s.landmarks ? `; local spots: ${s.landmarks}` : ''}`);
     if (s.party?.length) {
@@ -686,7 +688,7 @@ Continue the story from this decision.`;
         name: txt(data.name, 40), pronouns: txt(data.pronouns, 30), cls: txt(data.cls, 40),
         world: WORLDS[data.world] || data.world === 'custom' ? data.world : 'earth', place: txt(data.place, 200), landmarks: txt(data.landmarks, 300),
         premise: data.world === 'custom' ? txt(data.premise, 1500) : '',
-        tone: TONES[data.tone] ? data.tone : 'gritty', style: STYLES[data.style] ? data.style : 'lean', pov: ['first', 'third'].includes(data.pov) ? data.pov : 'second',
+        tone: TONES[data.tone] ? data.tone : 'gritty', style: STYLES[data.style] ? data.style : 'lean', pov: ['first', 'third'].includes(data.pov) ? data.pov : 'second', flavor: ['crawler', 'hunter'].includes(data.flavor) ? data.flavor : '',
         rating: RATINGS[data.rating] && data.rating !== 'pg' ? data.rating : 'r', romance: ROMANCE[data.romance] ? data.romance : 'off',
         enemies: [...new Set(Array.isArray(data.enemies) ? data.enemies : [])].filter(e => ENEMIES[e]),
         words: WORDS.includes(Number(data.words)) ? Number(data.words) : 900,
