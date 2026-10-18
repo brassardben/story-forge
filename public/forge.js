@@ -286,7 +286,7 @@ el.newForm.addEventListener('submit', async e => {
     cls, words: Number(el.fWords.value), voice: el.fVoice.value, sysVoice: el.fSysVoice.value, charVoices: el.fCharVoices.checked,
     systemName: el.fSysName.value === '__custom' ? el.fSysNameCustom.value.trim() : el.fSysName.value,
     personality: el.fPersonality.value, companion: el.fCompanion.value, companionDesc: el.fCompanionDesc.value.trim(),
-    background: el.fBackground.value.trim(), family: el.fFamily.value, familyDesc: el.fFamilyDesc.value.trim(), party: partyMembers(), turns: el.fTurns.checked, notes: el.fNotes.value.trim(), autoPoints: el.fAutoPoints.checked,
+    background: el.fBackground.value.trim(), family: el.fFamily.value, familyDesc: el.fFamilyDesc.value.trim(), party: partyMembers(), turns: el.fTurns.checked, notes: el.fNotes.value.trim(), avoidNames: $('fAvoid').value.trim(), autoPoints: el.fAutoPoints.checked,
   };
   if (body.party.some(m => m.kid)) { body.rating = 'pg'; body.romance = 'off'; }
   if (!body.name) { el.fName.focus(); return toast('Give your hero a name.'); }
@@ -326,7 +326,7 @@ function restoreSetup() {
   el.fPersonality.value = s.personality || 'auto';
   el.fCompanion.value = s.companion || 'none'; el.fCompanionDesc.hidden = el.fCompanion.value !== 'start'; el.fCompanionDesc.value = s.companionDesc || '';
   for (const m of s.party || []) addMember(m);
-  el.fTurns.checked = Boolean(s.turns); el.fNotes.value = s.notes || ''; syncCount(); el.fAutoPoints.checked = Boolean(s.autoPoints);
+  el.fTurns.checked = Boolean(s.turns); el.fNotes.value = s.notes || ''; $('fAvoid').value = s.avoidNames || ''; syncCount(); el.fAutoPoints.checked = Boolean(s.autoPoints);
   el.advanced.open = Boolean(s.advancedOpen);
   syncWorld();
 }
@@ -931,6 +931,8 @@ function pauseVoices() {
 }
 function pauseVision() {
   const ta = h('textarea', { maxlength: 6000, 'aria-label': 'Story vision' });
+  const av = h('input', { maxlength: 400, placeholder: 'e.g. Leah, Jacobs, Tara', 'aria-label': 'Names to keep out of the story' });
+  av.value = S.run.setup.avoidNames || '';
   ta.value = S.run.setup.notes || '';
   const count = h('span', {}, ta.value.length.toLocaleString());
   ta.addEventListener('input', () => { count.textContent = ta.value.length.toLocaleString(); });
@@ -938,7 +940,8 @@ function pauseVision() {
     h('p', { class: 'appearance' }, 'Your ideas for where this story goes. The game master follows it every chapter, and changes apply from the next one. Add new ideas any time.'),
     ta,
     h('div', { class: 'points-bar' }, h('span', { class: 'grow' }, count, ' / 6,000'),
-      h('button', { class: 'btn primary small', type: 'button', onclick: () => sheetAction('/api/forge/settings', { notes: ta.value }, 'Vision saved. The next chapter will follow it.') }, 'Save vision')))];
+      h('button', { class: 'btn primary small', type: 'button', onclick: () => sheetAction('/api/forge/settings', { notes: ta.value, avoidNames: av.value }, 'Saved. The next chapter will follow it.') }, 'Save'))),
+    h('label', { class: 'avoid-label' }, 'Names to keep out of the story ', h('span', { class: 'opt' }, 'people you know, separated by commas')), av];
 }
 function pauseMessages(sh) {
   const inbox = S.run.chapters.flatMap(c => (c.inbox || []).map(m => ({ ...m, n: c.n, dir: 'in' })));
@@ -962,13 +965,47 @@ function pauseMessages(sh) {
       } }, 'Send into Sanctuary')),
   ];
 }
+function renameCard() {
+  const run = S.run, hero = run.setup.name, last = latest();
+  const names = new Set();
+  for (const e of last.codex || []) if (e.kind === 'person' || e.kind === 'creature') names.add(e.name);
+  for (const c of last.sheet.companions || []) names.add(c.name);
+  for (const c of run.chapters) for (const sg of c.segments) if (sg.kind === 'dialogue' && sg.speaker) names.add(sg.speaker);
+  names.delete(hero);
+  const list = [...names].filter(Boolean).sort();
+  if (!list.length) return null;
+  const sel = h('select', { 'aria-label': 'Character to rename' }, ...list.map(n => h('option', { value: n }, n)));
+  const input = h('input', { maxlength: 40, placeholder: 'New name', 'aria-label': 'New name' });
+  const sugg = h('div', { class: 'chips name-chips' });
+  const suggest = async () => {
+    sugg.replaceChildren(h('span', { class: 'hint' }, 'Thinking up names…'));
+    try {
+      const { names } = await post('/api/forge/names', { id: run.id, who: sel.value });
+      sugg.replaceChildren(...names.map(n => h('button', { class: 'chip', type: 'button', title: n.why, onclick: () => { input.value = n.name; input.focus(); } }, n.name)));
+    } catch (e) { sugg.replaceChildren(); toast(e.message, true); }
+  };
+  const apply = () => {
+    const to = input.value.trim();
+    if (!to) return input.focus();
+    sheetAction('/api/forge/recast', { from: sel.value, to }, `Done. ${sel.value} is now ${to} everywhere, and the story will keep using ${to}.`);
+  };
+  return h('div', { class: 'card rename-card' },
+    h('div', { class: 'card-name' }, 'Rename a character'),
+    h('p', { class: 'appearance' }, 'Name sounds like someone you know, or just doesn’t fit? Change it. It updates the whole story and the old name never comes back. (Chapters already narrated keep the old name in the audio.)'),
+    h('div', { class: 'custom' }, sel, input),
+    h('div', { class: 'decision-foot' },
+      h('button', { class: 'btn ghost small', type: 'button', onclick: suggest }, '💡 Suggest names'),
+      h('button', { class: 'btn primary small', type: 'button', onclick: apply }, 'Rename')),
+    sugg);
+}
 function pauseCodex() {
   const codex = latest().codex || [];
-  if (!codex.length) return [h('div', { class: 'empty-state' }, 'Nothing discovered yet. People, creatures, factions and places you encounter will appear here.')];
+  const rc = renameCard();
+  if (!codex.length) return [rc, h('div', { class: 'empty-state' }, 'Nothing discovered yet. People, creatures, factions and places you encounter will appear here.')];
   const groups = [['person', 'People'], ['creature', 'Creatures'], ['faction', 'Factions'], ['place', 'Places'], ['item', 'Items'], ['lore', 'Lore']];
-  return groups.filter(([k]) => codex.some(e => e.kind === k)).map(([k, title]) => h('div', { class: 'codex-group' },
+  return [rc, ...groups.filter(([k]) => codex.some(e => e.kind === k)).map(([k, title]) => h('div', { class: 'codex-group' },
     h('h3', {}, title),
-    ...codex.filter(e => e.kind === k).map(e => h('div', { class: 'codex-entry' }, h('b', {}, e.name), ' ', h('span', {}, e.note)))));
+    ...codex.filter(e => e.kind === k).map(e => h('div', { class: 'codex-entry' }, h('b', {}, e.name), ' ', h('span', {}, e.note)))))];
 }
 
 // ---------- prefs & start ----------

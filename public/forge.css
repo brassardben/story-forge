@@ -418,3 +418,8 @@ select option[hidden] { display: none; }
 .newbie { margin-top: 18px; border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; background: rgba(255, 255, 255, .02); max-width: 680px; }
 .newbie summary { cursor: pointer; font-weight: 600; color: var(--ember); }
 .newbie p { color: var(--muted); margin: 10px 0; }
+
+.rename-card { margin-bottom: 18px; }
+.rename-card .custom select { flex: 1; min-width: 0; }
+.name-chips { margin-top: 10px; }
+.avoid-label { display: block; margin-top: 18px; }

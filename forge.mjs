@@ -120,7 +120,7 @@ Example of the rhythm (original, for style only; never reuse it):
   [thought] That is not a comforting sentence.
   [system] Cookie Dough, Family Size. Consumable. Ordinarily I'd tell you this is just sugar and regret. But Sergeant Pickles has been eating it for three days straight and he's still level 12, so either it's cursed or he's hiding something. Spoiler: it's the second one. Go ahead and ask him about the basement. I dare you.
   [system] New Quest! The Basement Accord. Part one of two. Somebody has been paying this raccoon very well to keep a door shut. Find out who. Reward: revealed when you stop being nosy and start being useful.
-BANNED (cliché filler, never write these or close variants): crisp air, crackling (anything but fire or electricity), moonlight bathing or spilling, moss or weeds pushing through cracks, eerie or deafening silence, the air thick with anything, shivers or chills down the spine, heart pounding in the chest, breath you didn't know you were holding, time standing still, a testament to, palpable, tapestry, symphony, dance of, little did you know, you can't help but. No weather, light or smell description unless it changes what the hero does next.
+BANNED (cliché filler, never write these or close variants): crisp air, crackling (anything but fire or electricity), moonlight bathing or spilling, moss or weeds pushing through cracks, eerie or deafening silence, the air thick with anything, shivers or chills down the spine, heart pounding in the chest, breath you didn't know you were holding, time standing still, a testament to, palpable, tapestry, symphony, dance of, little did you know, you can't help but, light or neon "painting" anything, sickly colors or glows, "a world gone mad". No weather, light or smell description unless it changes what the hero does next.
 ACCURACY: setup facts are literal. A street address is a house (the family home) unless the player says otherwise, never a hospital or business. Never contradict the setup, MEMORY or earlier chapters; if a setup detail seems odd, use it as written rather than reinterpreting it.
 Never pad: trust the reader, don't explain what they can infer, don't stack adjectives or describe scenery that doesn't matter to the moment, don't restate feelings or recap what just happened. Keep the story moving.
 
@@ -136,6 +136,7 @@ RULES
 - Originality: all characters, gods, factions, places, items and lore are your own inventions. Never reuse named characters, gods, places or unique terms from existing published novels, even when the player names a book as inspiration.
 - The hero's BACKGROUND is real: their training, job skills and knowledge shape what they notice, what they are good at and what they think to do first (a soldier knows weapons, tactics and where local bases, armories or gun stores are; a nurse knows medicine; a mechanic can fix engines).
 - Authority: the System's rules are absolute and cannot be cheated, but it has favorites. authority (0-100) is the hero's standing with the System: it rises slowly and rarely, only through remarkable deeds, firsts, and impressing the System or the gods. As it grows the System treats the hero differently: around 10 it answers simple questions, around 25 it offers the hero choices between rewards, around 50 it allows small negotiations and adjustments, around 75 the hero can influence how it reacts in their territory; never full control. Announce authority gains with a system segment. patrons lists gods or ancient beings who have taken an interest in the hero, with a few words on what that means (watching, blessing, testing, claim); they are earned, not given.
+- Names: give every new character a distinctive name that fits the world and the character (avoid the most common everyday first names like Mike, Sarah, Jake, Chris, Jessica, Matt). Never use any name listed under NAMES TO AVOID, and never bring back a name the player has replaced.
 - Cast: build a varied cast, and always include at least one formidable, capable woman in a major role (ally, rival, companion or leader), written as a real person with her own goals, not a token.
 - MESSAGES: if the hero has loved ones in Sanctuary, a way to reach them is earned only through real progress (usually after a major milestone or Authority around 25 or more). When it is unlocked, set link_unlocked to true and announce it. After that, loved ones may occasionally send short messages: put only NEW messages from this chapter in inbox (from, text), in each person's real voice (kids sound like kids), hopeful and loving. Messages the player sends arrive in PLAYER ACTIONS; answer them in a later chapter. Before it is unlocked, inbox is always empty and link_unlocked stays false.
 - Companions: the companions list holds party members and any sidekick or companion who travels with the hero (name, kind such as human or beast or AI familiar, role, level, bond 0-100, condition). Bond rises and falls with the hero's choices. Companions have personalities, opinions and their own small arcs, and they can level up.
@@ -316,6 +317,8 @@ export function createForge({ root, savesDir = path.join(root, 'saves'), port, a
     ];
     if (s.flavor === 'crawler') lines.push(`FLAVOR: crawler chaos. Lean hardest on the System as a mouthy, opinionated character (long gossipy inspection cards, punny quests, big rule announcements), absurd situations and creatures, deadpan humor, and loyalty and grief underneath. Danger is real and the world is unfair on purpose.`);
     if (s.flavor === 'hunter') lines.push(`FLAVOR: hunter's path. Lean hardest on a calm, confident, sharp hero who studies how the System works, theorizes and runs experiments on skills and abilities, evolves skills through clever choices, and grows into something others find unsettling. Humor is dry and comes from side characters' reactions. Occasional short cutaways show allies or rivals sizing the hero up.`);
+    const avoid = [...(s.avoidNames ? s.avoidNames.split(/[,\n]/) : []), ...(s.retired || [])].map(x => x.trim()).filter(Boolean);
+    if (avoid.length) lines.push(`NAMES TO AVOID (real people the player knows, or names they replaced; never use them for anyone): ${avoid.join(', ')}`);
     if (s.cls) lines.push(`PLANNED CLASS: ${s.cls} (if the sheet is still Unclassed, the class selection scene is due now).`);
     if (s.place) lines.push(`HERO'S HOME: ${s.place}${s.landmarks ? `; local spots: ${s.landmarks}` : ''}`);
     if (s.party?.length) {
@@ -608,6 +611,25 @@ Continue the story from this decision.`;
       r.title = title; r.customTitle = true; await save(r);
       json(res, 200, { ok: true, title }); return true;
     }
+    if (p === '/api/forge/recast') {
+      if (locks.text) fail(BUSY, 429);
+      const clean = v => txt(v, 40).replace(/["\\<>{}\[\]]/g, '').replace(/\s+/g, ' ').trim();
+      const from = clean(data.from), to = clean(data.to);
+      if (!from || !to) fail('Pick a character and type their new name.');
+      if (from === to) fail('That is already their name.');
+      const r = await load(data.id);
+      if (from.toLowerCase() === r.setup.name.toLowerCase()) fail('To rename your hero, start over with a new name.');
+      const esc = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp(`(?<![\\p{L}\\p{N}])${esc}(?![\\p{L}\\p{N}])`, 'gu');
+      const blob = JSON.stringify(r.chapters);
+      if (!re.test(blob)) fail(`Couldn't find "${from}" in this story.`, 404);
+      re.lastIndex = 0;
+      r.chapters = JSON.parse(blob.replace(re, () => to));
+      if (r.cast?.[from]) { r.cast[to] = r.cast[from]; delete r.cast[from]; }
+      r.setup.retired = [...new Set([...(r.setup.retired || []), from])].slice(-40);
+      await save(r);
+      json(res, 200, { run: await view(r) }); return true;
+    }
     const sheetEdit = async (fn) => {
       if (locks.text) fail(BUSY, 429);
       const r = await load(data.id), last = r.chapters.at(-1);
@@ -674,6 +696,7 @@ Continue the story from this decision.`;
         if (typeof data.autoPoints === 'boolean') r.setup.autoPoints = data.autoPoints;
         if (STYLES[data.style]) r.setup.style = data.style;
         if (typeof data.notes === 'string') r.setup.notes = txt(data.notes, 6000);
+        if (typeof data.avoidNames === 'string') r.setup.avoidNames = txt(data.avoidNames, 400);
         if (VOICES.includes(data.voice)) r.setup.voice = data.voice;
         if (VOICES.includes(data.sysVoice)) r.setup.sysVoice = data.sysVoice;
         if (typeof data.charVoices === 'boolean') r.setup.charVoices = data.charVoices;
@@ -702,7 +725,7 @@ Continue the story from this decision.`;
         companion: ['none', 'open', 'start'].includes(data.companion) ? data.companion : 'none',
         companionDesc: txt(data.companionDesc, 200),
         party, turns: Boolean(data.turns) && party.length > 0,
-        notes: txt(data.notes, 6000), background: txt(data.background, 300), family: FAMILY[data.family] !== undefined ? data.family : 'none', familyDesc: txt(data.familyDesc, 200), autoPoints: Boolean(data.autoPoints),
+        notes: txt(data.notes, 6000), avoidNames: txt(data.avoidNames, 400), background: txt(data.background, 300), family: FAMILY[data.family] !== undefined ? data.family : 'none', familyDesc: txt(data.familyDesc, 200), autoPoints: Boolean(data.autoPoints),
       };
       if (hasKids(setup)) { setup.rating = 'pg'; setup.romance = 'off'; } // kids in the party: always family-friendly
       if (!setup.name) fail('Give your hero a name.');
@@ -755,6 +778,16 @@ Continue the story from this decision.`;
         return r;
       });
       json(res, 200, { run: await view(run) }); return true;
+    }
+    if (p === '/api/forge/names') {
+      const r = await load(data.id), cur = state(r), who = txt(data.who, 40);
+      usage.check('ideas');
+      const entry = (cur.codex || []).find(e => e.name === who);
+      const out = await withLock('text', BUSY, () => structured(
+        `${settingBlock(r.setup)}\nSTORY SO FAR: ${cur.summary}\nCHARACTER TO RENAME: ${who}${entry ? ` (${entry.note})` : ''}\nSuggest 6 fresh, distinctive names that fit this character, the world and the tone. Mix styles (one can be a nickname or title). Avoid common everyday first names and anything under NAMES TO AVOID. Each with a few words on why it fits.`,
+        'name_ideas', obj({ names: { type: 'array', items: obj({ name: str, why: str }) } }), 800, 'You name characters for an interactive LitRPG story. Names must be original, never from published novels.'));
+      usage.add('ideas');
+      json(res, 200, { names: (out.names || []).slice(0, 6).map(n => ({ name: txt(n.name, 40), why: txt(n.why, 120) })).filter(n => n.name) }); return true;
     }
     if (p === '/api/forge/ideas') {
       const r = await load(data.id), cur = state(r);
