@@ -4,7 +4,7 @@ const $ = id => document.getElementById(id);
 const el = {
   status: $('status'), banner: $('banner'), toast: $('toast'),
   home: $('home'), runsPanel: $('runsPanel'), runsList: $('runsList'),
-  newForm: $('newForm'), fName: $('fName'), fPronouns: $('fPronouns'), fWorld: $('fWorld'), fPlace: $('fPlace'), fSysVoice: $('fSysVoice'), fCharVoices: $('fCharVoices'), fFamily: $('fFamily'), fFamilyDesc: $('fFamilyDesc'), familyWho: $('familyWho'), familyHint: $('familyHint'), fBackground: $('fBackground'), notesCount: $('notesCount'), fLandmarks: $('fLandmarks'),
+  newForm: $('newForm'), fName: $('fName'), fPronouns: $('fPronouns'), fWorld: $('fWorld'), fPlace: $('fPlace'), fSysVoice: $('fSysVoice'), fFamily: $('fFamily'), fFamilyDesc: $('fFamilyDesc'), familyWho: $('familyWho'), familyHint: $('familyHint'), fBackground: $('fBackground'), notesCount: $('notesCount'), fLandmarks: $('fLandmarks'),
   fPremise: $('fPremise'), premiseWrap: $('premiseWrap'), worldHint: $('worldHint'), fEnemies: $('fEnemies'),
   fStyle: $('fStyle'), styleSel: $('styleSel'), fTone: $('fTone'), fRating: $('fRating'), fRomance: $('fRomance'), fClass: $('fClass'), fClassCustom: $('fClassCustom'), fWords: $('fWords'), fVoice: $('fVoice'), startBtn: $('startBtn'),
   renameBtn: $('renameBtn'), play: $('play'), runMeta: $('runMeta'), runTitle: $('runTitle'), chapters: $('chapters'),
@@ -283,7 +283,7 @@ el.newForm.addEventListener('submit', async e => {
   const body = {
     name: el.fName.value.trim(), pronouns: el.fPronouns.value, world: el.fWorld.value, place: el.fPlace.value.trim(), landmarks: el.fLandmarks.value.trim(),
     premise: el.fPremise.value.trim(), tone: el.fTone.value, style: el.fStyle.value, pov: $('fPov').value, flavor: $('fFlavor').value, rating: el.fRating.value, romance: el.fRomance.value, enemies: enemyBoxes().filter(b => b.checked).map(b => b.value),
-    cls, words: Number(el.fWords.value), voice: el.fVoice.value, sysVoice: el.fSysVoice.value, charVoices: el.fCharVoices.checked,
+    cls, words: Number(el.fWords.value), voice: el.fVoice.value, sysVoice: el.fSysVoice.value, voiceMode: $('fVoiceMode').value,
     systemName: el.fSysName.value === '__custom' ? el.fSysNameCustom.value.trim() : el.fSysName.value,
     personality: el.fPersonality.value, companion: el.fCompanion.value, companionDesc: el.fCompanionDesc.value.trim(),
     background: el.fBackground.value.trim(), family: el.fFamily.value, familyDesc: el.fFamilyDesc.value.trim(), party: partyMembers(), turns: el.fTurns.checked, notes: el.fNotes.value.trim(), avoidNames: $('fAvoid').value.trim(), autoPoints: el.fAutoPoints.checked,
@@ -314,7 +314,7 @@ function restoreSetup() {
   if (!s) return;
   el.partyList.replaceChildren();
   el.fName.value = s.name || ''; el.fPronouns.value = s.pronouns || 'he/him'; el.fWorld.value = s.world || 'earth';
-  el.fPlace.value = s.place || ''; el.fLandmarks.value = s.landmarks || ''; el.fBackground.value = s.background || ''; el.fFamily.value = s.family || 'none'; el.fFamilyDesc.value = s.familyDesc || ''; syncFamily(); el.fWords.value = String(s.words || 900); el.fVoice.value = s.voice || 'onyx'; el.fSysVoice.value = s.sysVoice || 'alloy'; el.fCharVoices.checked = s.charVoices !== false;
+  el.fPlace.value = s.place || ''; el.fLandmarks.value = s.landmarks || ''; el.fBackground.value = s.background || ''; el.fFamily.value = s.family || 'none'; el.fFamilyDesc.value = s.familyDesc || ''; syncFamily(); el.fWords.value = String(s.words || 900); el.fVoice.value = s.voice || 'onyx'; el.fSysVoice.value = s.sysVoice || 'alloy'; $('fVoiceMode').value = s.voiceMode || 'narrator';
   el.fClass.value = s.clsSelect || ''; el.fClassCustom.hidden = el.fClass.value !== '__custom';
   if (!el.fClassCustom.hidden) el.fClassCustom.value = s.cls || '';
   el.fPremise.value = s.premise || ''; el.fTone.value = s.tone || 'gritty'; el.fStyle.value = s.style || 'lean'; $('fPov').value = s.pov || 'first'; $('fFlavor').value = s.flavor || 'custom'; el.fRating.value = s.rating || 'r'; el.fRomance.value = s.romance || 'off';
@@ -908,15 +908,18 @@ function pauseVoices() {
   const st = S.run.setup;
   const nar = h('select', { 'aria-label': 'Narrator voice' }); fillVoices(nar, st.voice || 'onyx');
   const sys = h('select', { 'aria-label': 'System voice' }); fillVoices(sys, st.sysVoice || 'alloy');
-  const chars = h('input', { type: 'checkbox' }); chars.checked = st.charVoices !== false;
-  const save = () => sheetAction('/api/forge/settings', { voice: nar.value, sysVoice: sys.value, charVoices: chars.checked }, 'Voices saved. New narration will use them.');
+  const chars = h('select', { 'aria-label': 'How characters are voiced' },
+    h('option', { value: 'narrator' }, 'One narrator does all the voices (like an audiobook)'),
+    h('option', { value: 'cast' }, 'Full cast: every character gets their own voice'));
+  chars.value = st.voiceMode || (st.charVoices === false ? 'narrator' : 'cast');
+  const save = () => sheetAction('/api/forge/settings', { voice: nar.value, sysVoice: sys.value, voiceMode: chars.value }, 'Voices saved. New narration will use them.');
   nar.addEventListener('change', save); sys.addEventListener('change', save); chars.addEventListener('change', save);
   const cast = Object.entries(S.run.cast || {});
   const last = latest();
   return [
     h('h3', {}, 'Voices'),
     h('div', { class: 'grid2' }, h('div', {}, h('label', {}, 'Narrator'), nar), h('div', {}, h('label', {}, `${sysName()}`), sys)),
-    h('label', { class: 'toggle inline' }, chars, ' Give every character their own voice'),
+    h('label', {}, 'Character voices'), chars,
     cast.length ? h('h3', {}, 'Character voices so far') : null,
     cast.length ? h('ul', {}, ...cast.map(([who, v]) => h('li', {}, `${who}: `, h('span', { class: 'skill-desc' }, (VOICE_OPTS.find(o => o[0] === v) || [v, v])[1])))) : null,
     h('h3', {}, 'Re-record'),

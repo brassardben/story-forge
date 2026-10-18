@@ -110,6 +110,7 @@ GENRE VOICE (how the best LitRPG reads; follow it in every tone):
 - Occasionally (not every chapter), a short scene break marked "--" can cut to an ally or rival reacting to the hero, to show how strange or scary the hero is becoming from the outside. Keep it brief and return to the hero.
 - The hero's fear and doubt show in quick flashes of thought, then they get back to work.
 - Use the genre's proven hooks when they fit: countdown timers, first-kill and first-to-do-it titles and bonuses, global announcements and leaderboards of who is ahead, hidden or unique classes and skills earned through clever or strange play, achievements for weird feats, tiered loot boxes, safe zones and shops with odd shopkeepers, other humans as both allies and the worst threat, boss fights that are really puzzles, and a rival who is always a step ahead. Give every chapter an edge: a real cost, a hard choice, a nasty surprise, or a reward the hero has to decide whether to trust.
+THE HERO'S EDGE: every great LitRPG hero has one rare thing that sets them apart and makes them the protagonist. Early (chapters 1-4), plant it: a rare bloodline, a strange unique skill, a glitch or hidden line in their status screen, a title nobody else has, a patron's mark, an item that bonds only to them. Shape it around the hero's background and the player's vision. The hero notices something is off before understanding it, and the System is cagey or oddly interested. Reveal what it is and what it can do piece by piece over many chapters, letting it grow and evolve with the hero, so the reader is always curious about the next piece. Others react when they find out (envy, fear, recruitment). Track it in the bible's secrets and never resolve it all at once. Follow the PLAYER'S VISION if it describes one.
 ONBOARDING (many players have never read LitRPG): in chapter 1, soon after the event begins, the System makes a clear integration announcement to everyone, in its personality: what is happening in in-world terms (as much as it chooses to reveal), the first objective with a deadline and a reward (for example survive the first 24 hours, reach a safe zone before nightfall, or make your first kill within the hour), and 2-4 basic rules (everyone gets a status screen, levels and stats make you stronger, classes are coming, death is permanent). Then over chapters 1-3, the first time each mechanic matters (status screen, XP and levels, stat points, skills, classes, quests), the System explains it in one or two plain lines. Never assume the reader knows genre jargon. If the world premise keeps the System hidden or delayed, deliver this orientation through clues and discoveries instead, at the premise's pace.
 Example of the rhythm (original, for style only; never reuse it):
   A raccoon in a crossing-guard vest sat on an overturned shopping cart, eating a tube of cookie dough.
@@ -463,7 +464,8 @@ Continue the story from this decision.`;
   async function narrate(run, n, withChoices, force) {
     const c = run.chapters[n - 1];
     if (!c) fail('That chapter does not exist.', 404);
-    const dir = dirOf(run.id), v = voicesFor(run), charVoices = run.setup.charVoices !== false;
+    const dir = dirOf(run.id), v = voicesFor(run), mode = run.setup.voiceMode || (run.setup.charVoices === false ? 'plain' : 'cast'), charVoices = mode === 'cast';
+    const STEADY = ' Keep the same steady volume and pace as the rest of the chapter.';
     const jobs = [];
     const chapterFile = path.join(dir, `c-${c.uid}.mp3`), qFile = path.join(dir, `q-${c.uid}.mp3`);
     if (force) { await rm(chapterFile, { force: true }); await rm(qFile, { force: true }); }
@@ -472,6 +474,15 @@ Continue the story from this decision.`;
       for (const s of c.segments) {
         let voice = v.narrator, style = v.narStyle, text = s.text;
         if (s.kind === 'system') { voice = v.sys; style = v.sysStyle; }
+        if (mode === 'narrator' && (s.kind === 'dialogue' || s.kind === 'thought')) {
+          const who = s.kind === 'thought' ? run.setup.name : s.speaker;
+          style = s.kind === 'thought'
+            ? `${v.narStyle} This line is ${who}'s private inner thought: a touch quieter and closer, like talking under your breath, but clearly the same narrator.${STEADY}`
+            : `${v.narStyle} For this line only, perform the character ${who} (${s.gender === 'female' ? 'a woman' : s.gender === 'male' ? 'a man' : 'a non-human or unknown speaker'}) the way a skilled audiobook narrator does: shift pitch and attitude just enough to suggest them, but stay recognizably the same narrator.${STEADY}`;
+          const last = parts.at(-1);
+          if (last.voice === voice && last.style === style) last.text += `\n\n${text}`; else parts.push({ text, voice, style });
+          continue;
+        }
         if (s.kind === 'thought' && charVoices) {
           voice = castVoice(run, run.setup.name, run.setup.pronouns === 'she/her' ? 'female' : run.setup.pronouns === 'they/them' ? 'other' : 'male');
           style = `This is ${run.setup.name}'s private inner thought, not spoken to anyone: quieter and closer, quick, natural and honest, like talking to yourself under your breath.${ACCENT}`;
@@ -479,7 +490,7 @@ Continue the story from this decision.`;
         if (s.kind === 'dialogue') {
           if (charVoices) {
             voice = castVoice(run, s.speaker, s.gender);
-            style = `Speak only this line, in character as ${s.speaker}, a character in a gritty audiobook. Natural, conversational, emotionally real.${ACCENT}`;
+            style = `Speak only this line, in character as ${s.speaker}, a character in a gritty audiobook. Natural, conversational, emotionally real.${ACCENT}${STEADY}`;
           } else text = `"${text}"`;
         }
         const last = parts.at(-1);
@@ -700,6 +711,7 @@ Continue the story from this decision.`;
         if (VOICES.includes(data.voice)) r.setup.voice = data.voice;
         if (VOICES.includes(data.sysVoice)) r.setup.sysVoice = data.sysVoice;
         if (typeof data.charVoices === 'boolean') r.setup.charVoices = data.charVoices;
+        if (['narrator', 'cast'].includes(data.voiceMode)) { r.setup.voiceMode = data.voiceMode; r.setup.charVoices = data.voiceMode === 'cast'; }
         if (typeof data.steer === 'string') r.pending.steer = txt(data.steer, 500);
         return null;
       });
@@ -719,7 +731,7 @@ Continue the story from this decision.`;
         enemies: [...new Set(Array.isArray(data.enemies) ? data.enemies : [])].filter(e => ENEMIES[e]),
         words: WORDS.includes(Number(data.words)) ? Number(data.words) : 900,
         voice: VOICES.includes(data.voice) ? data.voice : 'onyx', sysVoice: VOICES.includes(data.sysVoice) ? data.sysVoice : 'alloy',
-        charVoices: data.charVoices !== false, year: new Date().getFullYear(),
+        voiceMode: data.voiceMode === 'cast' ? 'cast' : 'narrator', charVoices: data.voiceMode === 'cast', year: new Date().getFullYear(),
         systemName: txt(data.systemName, 40) || 'The System',
         personality: PERSONALITIES[data.personality] ? data.personality : 'auto',
         companion: ['none', 'open', 'start'].includes(data.companion) ? data.companion : 'none',
