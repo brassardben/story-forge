@@ -423,3 +423,16 @@ select option[hidden] { display: none; }
 .rename-card .custom select { flex: 1; min-width: 0; }
 .name-chips { margin-top: 10px; }
 .avoid-label { display: block; margin-top: 18px; }
+
+/* choice tags + path meter */
+.choice-body { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.ctag { font: 600 10.5px var(--mono); letter-spacing: 1px; text-transform: uppercase; padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line); color: var(--muted); }
+.ctag.light { color: #ffe9a8; border-color: rgba(255, 233, 168, .5); background: rgba(255, 233, 168, .07); }
+.ctag.dark { color: #ff8f8f; border-color: rgba(255, 122, 122, .5); background: rgba(255, 122, 122, .07); }
+.ctag.self { color: #c9b6ff; border-color: rgba(167, 139, 250, .5); background: rgba(167, 139, 250, .07); }
+.path { margin: 10px 0; }
+.path-bar { position: relative; height: 8px; border-radius: 6px; background: linear-gradient(90deg, #b42318, #6b2a2a 30%, #3a3f55 50%, #6b6340 70%, #f2d27a); }
+.path-marker { position: absolute; top: -4px; width: 4px; height: 16px; margin-left: -2px; border-radius: 2px; background: var(--ink); box-shadow: 0 0 8px rgba(255, 255, 255, .6); }
+.path-ends { display: flex; justify-content: space-between; font: 11px var(--mono); color: var(--muted); margin-top: 4px; }
+.path-name { font-weight: 700; }
+.p-seraph, .p-lightbound { color: #f2d27a; } .p-infernal, .p-ashen { color: #ff7a7a; } .p-unbound { color: #c9b6ff; }

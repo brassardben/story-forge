@@ -136,6 +136,7 @@ RULES
 - Scale: power and reach grow over the saga, from on foot, to vehicles, to aircraft and eventually ships that leave the world, matched to the story's progress. Never jump ahead.
 - Originality: all characters, gods, factions, places, items and lore are your own inventions. Never reuse named characters, gods, places or unique terms from existing published novels, even when the player names a book as inspiration.
 - The hero's BACKGROUND is real: their training, job skills and knowledge shape what they notice, what they are good at and what they think to do first (a soldier knows weapons, tactics and where local bases, armories or gun stores are; a nurse knows medicine; a mechanic can fix engines).
+- PATH: alignment (-100 to 100) tracks who the hero is becoming. +100 is the Seraph path (selfless, protective, merciful), -100 is the Infernal path (ruthless, cruel, power at any cost), and the middle is the Unbound path (out for yourself: pragmatic, mercenary, loyal only to your own). Move it by what the hero actually does, usually 0-8 points per chapter and never more than 15. The world reacts: the System comments on it, NPCs trust or fear the hero, some quests, skills, titles, patrons and companions only open to a given path, and crossing a tier threshold (+60 Seraph, +20 Lightbound, -20 Ashen, -60 Infernal; between is Unbound) is announced with a system segment. Every path is viable and fun; never punish the player for choosing dark or selfish, just make it feel different.
 - Authority: the System's rules are absolute and cannot be cheated, but it has favorites. authority (0-100) is the hero's standing with the System: it rises slowly and rarely, only through remarkable deeds, firsts, and impressing the System or the gods. As it grows the System treats the hero differently: around 10 it answers simple questions, around 25 it offers the hero choices between rewards, around 50 it allows small negotiations and adjustments, around 75 the hero can influence how it reacts in their territory; never full control. Announce authority gains with a system segment. patrons lists gods or ancient beings who have taken an interest in the hero, with a few words on what that means (watching, blessing, testing, claim); they are earned, not given.
 - Names: give every new character a distinctive name that fits the world and the character (avoid the most common everyday first names like Mike, Sarah, Jake, Chris, Jessica, Matt). Never use any name listed under NAMES TO AVOID, and never bring back a name the player has replaced.
 - Cast: build a varied cast, and always include at least one formidable, capable woman in a major role (ally, rival, companion or leader), written as a real person with her own goals, not a token.
@@ -143,7 +144,7 @@ RULES
 - Companions: the companions list holds party members and any sidekick or companion who travels with the hero (name, kind such as human or beast or AI familiar, role, level, bond 0-100, condition). Bond rises and falls with the hero's choices. Companions have personalities, opinions and their own small arcs, and they can level up.
 - Consequences persist. Honor STORY SO FAR, MEMORY and the CODEX: allies remember kindness, enemies remember betrayal, lost things stay lost, wounds take time. Avoid killing the hero, but failure has real costs.
 - Honor the player's decision faithfully. Open the chapter by playing it out. If the player typed their own action, carry it out as written when physically possible; reckless actions can fail with consequences. Never ignore it or decide for them.
-- End every chapter on a tense, unresolved decision point. Then give exactly 4 choices: under 15 words each, written as imperative actions ("Charge the hound before it calls the pack"), clearly different from each other: one bold, one cunning, one careful or curious (investigate, ask, scout, use a skill or item in a clever way), and one wildcard (risky, moral, or funny). Do not number them.
+- End every chapter on a tense, unresolved decision point. Then give exactly 4 choices: under 15 words each, written as imperative actions ("Charge the hound before it calls the pack"), clearly different from each other: one bold, one cunning, one careful or curious (investigate, ask, scout, use a skill or item in a clever way), and one wildcard (risky, moral, or funny). Do not number them. When the moment allows, make them pull in different directions on the hero's PATH (a heroic option, a selfish one, a ruthless one). choice_tags: exactly one tag per choice, in the same order, naming what the choice is really about or what it is likely to gain: Heroic, Merciful, Ruthless, Selfish, Cunning, Cautious, Loot, Power, Reputation, Bond, Reckless or Wildcard. Tags are honest hints, not guarantees.
 
 STORY DIRECTOR
 - You also keep a hidden plan, the bible, which the player never sees. Use it to plan ahead so the world keeps growing and the story never runs out of road.
@@ -158,6 +159,7 @@ FIELDS: continuity_check (fill this FIRST, before writing; the player never sees
 - Follow the CONTENT RATING and ROMANCE settings exactly. Hard limits regardless of settings: romance and sexual content only ever involve adults; never anything sexual involving minors; no depicted sexual violence; intimate scenes always fade to black, with no explicit sexual description. If PARTY includes children, keep everything family-friendly and keep the children safe from graphic harm.`;
 
 const str = { type: 'string' }, int = { type: 'integer' }, strs = { type: 'array', items: { type: 'string' } };
+const CHOICE_TAGS = ['Heroic', 'Merciful', 'Ruthless', 'Selfish', 'Cunning', 'Cautious', 'Loot', 'Power', 'Reputation', 'Bond', 'Reckless', 'Wildcard'];
 const obj = (props) => ({ type: 'object', additionalProperties: false, required: Object.keys(props), properties: props });
 const sheetSchema = obj({
   name: str, class: str, level: int, xp: int, xp_to_next: int,
@@ -166,13 +168,13 @@ const sheetSchema = obj({
   unspent_points: int,
   skills: { type: 'array', items: obj({ name: str, rank: str, description: str }) },
   equipment: obj(Object.fromEntries(SLOTS.map(k => [k, str]))),
-  inventory: strs, titles: strs, condition: str, appearance: str, authority: int, patrons: strs, link_unlocked: { type: 'boolean' },
+  inventory: strs, titles: strs, condition: str, appearance: str, authority: int, alignment: int, patrons: strs, link_unlocked: { type: 'boolean' },
   companions: { type: 'array', items: obj({ name: str, kind: str, role: str, level: int, bond: int, condition: str }) },
 });
 const chapterSchema = obj({
   continuity_check: str, series_title: str, chapter_title: str,
   segments: { type: 'array', items: obj({ kind: { type: 'string', enum: ['prose', 'system', 'dialogue', 'thought'] }, speaker: str, gender: { type: 'string', enum: ['male', 'female', 'other', 'none'] }, text: str }) },
-  choices: strs, sheet: sheetSchema, story_so_far: str, memory: strs,
+  choices: strs, choice_tags: { type: 'array', items: { type: 'string', enum: CHOICE_TAGS } }, sheet: sheetSchema, story_so_far: str, memory: strs,
   bible: obj({ arc: str, threats: strs, secrets: strs, next_beats: strs }),
   inbox: { type: 'array', items: obj({ from: str, text: str }) },
   codex: { type: 'array', items: obj({ name: str, kind: { type: 'string', enum: ['person', 'creature', 'faction', 'place', 'item', 'lore'] }, note: str }) },
@@ -187,10 +189,10 @@ const emptyBible = () => ({ arc: '', threats: [], secrets: [], next_beats: [] })
 const startSheet = (name, cls) => ({
   name, class: cls || 'Unclassed', level: 1, xp: 0, xp_to_next: 100, health: 100, max_health: 100, energy: 50, max_energy: 50,
   stats: Object.fromEntries(STATS.map(k => [k, 5])), unspent_points: 0, skills: [], equipment: emptyGear(), inventory: [], titles: [],
-  condition: 'Healthy', appearance: '', companions: [], authority: 0, patrons: [], link_unlocked: false,
+  condition: 'Healthy', appearance: '', companions: [], authority: 0, alignment: 0, patrons: [], link_unlocked: false,
 });
 // Old saves lack newer fields; fill them in.
-const upgradeSheet = s => ({ ...startSheet(s.name, s.class), ...s, equipment: { ...emptyGear(), ...(s.equipment || {}) }, companions: s.companions || [], unspent_points: s.unspent_points || 0, appearance: s.appearance || '', authority: s.authority || 0, patrons: s.patrons || [], link_unlocked: Boolean(s.link_unlocked) });
+const upgradeSheet = s => ({ ...startSheet(s.name, s.class), ...s, equipment: { ...emptyGear(), ...(s.equipment || {}) }, companions: s.companions || [], unspent_points: s.unspent_points || 0, appearance: s.appearance || '', authority: s.authority || 0, alignment: Number.isFinite(s.alignment) ? s.alignment : 0, patrons: s.patrons || [], link_unlocked: Boolean(s.link_unlocked) });
 function cleanSheet(s, prevRaw) {
   const prev = upgradeSheet(prevRaw);
   const out = {
@@ -205,7 +207,8 @@ function cleanSheet(s, prevRaw) {
     equipment: Object.fromEntries(SLOTS.map(k => [k, txt(s?.equipment?.[k], 90)])),
     inventory: list(s?.inventory, 40, 90), titles: list(s?.titles, 15, 80),
     condition: txt(s?.condition, 140) || 'Healthy', appearance: txt(s?.appearance, 400) || prev.appearance,
-    authority: Math.min(100, num(s?.authority, prev.authority)), patrons: list(s?.patrons, 8, 140),
+    authority: Math.min(100, num(s?.authority, prev.authority)),
+    alignment: Number.isFinite(s?.alignment) ? Math.max(prev.alignment - 15, Math.min(prev.alignment + 15, Math.max(-100, Math.min(100, Math.round(s.alignment))))) : prev.alignment, patrons: list(s?.patrons, 8, 140),
     link_unlocked: Boolean(prev.link_unlocked || s?.link_unlocked),
     companions: (Array.isArray(s?.companions) ? s.companions : []).slice(0, 8).map(c => ({
       name: txt(c?.name, 60), kind: txt(c?.kind, 40), role: txt(c?.role, 80), level: num(c?.level, 1),
@@ -382,11 +385,12 @@ Continue the story from this decision.`;
         return seg;
       }).filter(x => x.text).slice(0, 160);
     const choices = list(data.choices, 4, 160);
+    const choiceTags = choices.map((_, i) => (CHOICE_TAGS.includes(data.choice_tags?.[i]) ? data.choice_tags[i] : ''));
     if (!segments.length || choices.length < 2) fail('The chapter came back incomplete. Please try again.', 502);
     return {
       chapter: {
         n, uid: randomBytes(4).toString('hex'), title: txt(data.chapter_title, 120).replace(/^chapter\s+\d+\s*[:.\-–—]\s*/i, '') || `Chapter ${n}`,
-        segments, choices, decision: null, decider, sheet: cleanSheet(data.sheet, cur.sheet),
+        segments, choices, choiceTags, decision: null, decider, sheet: cleanSheet(data.sheet, cur.sheet),
         summary: txt(data.story_so_far, 3000) || cur.summary, memory: list(data.memory, 25, 240),
         bible: cleanBible(data.bible, cur.bible), codex: cleanCodex(data.codex, cur.codex),
         inbox: (Array.isArray(data.inbox) ? data.inbox : []).slice(0, 5).map(m => ({ from: txt(m?.from, 60), text: txt(m?.text, 600) })).filter(m => m.from && m.text),
@@ -503,7 +507,7 @@ Continue the story from this decision.`;
     }
     if (withChoices && !c.decision && !(await exists(qFile))) {
       const words = ['One', 'Two', 'Three', 'Four'];
-      const text = `${c.decider ? `${c.decider}, what do you do?` : 'What do you do?'} ${c.choices.map((x, i) => `${words[i]}: ${clip(x)}.`).join(' ')} Or say your own move.`;
+      const text = `${c.decider ? `${c.decider}, what do you do?` : 'What do you do?'} ${c.choices.map((x, i) => `${words[i]}${c.choiceTags?.[i] ? `, ${c.choiceTags[i]}` : ''}: ${clip(x)}.`).join(' ')} Or say your own move.`;
       jobs.push(async () => writeFile(qFile, await speak(text, v.narrator, v.narStyle)));
     }
     const prev = run.chapters[n - 2];
@@ -713,6 +717,16 @@ Continue the story from this decision.`;
         if (typeof data.charVoices === 'boolean') r.setup.charVoices = data.charVoices;
         if (['narrator', 'cast'].includes(data.voiceMode)) { r.setup.voiceMode = data.voiceMode; r.setup.charVoices = data.voiceMode === 'cast'; }
         if (typeof data.steer === 'string') r.pending.steer = txt(data.steer, 500);
+        const kids = (r.setup.party || []).some(m => m.kid);
+        const changed = [];
+        if (TONES[data.tone] && data.tone !== r.setup.tone) { r.setup.tone = data.tone; changed.push(`tone: ${TONES[data.tone]}`); }
+        if (!kids && RATINGS[data.rating] && data.rating !== 'pg' && data.rating !== r.setup.rating) { r.setup.rating = data.rating; changed.push('content rating'); }
+        if (!kids && ROMANCE[data.romance] && data.romance !== r.setup.romance) { r.setup.romance = data.romance; changed.push('romance setting'); }
+        if (WORDS.includes(Number(data.words))) r.setup.words = Number(data.words);
+        if (PERSONALITIES[data.personality] && data.personality !== r.setup.personality) { r.setup.personality = data.personality; changed.push(`${r.setup.systemName || 'The System'}'s personality: ${PERSONALITIES[data.personality].text}`); }
+        if (['first', 'second', 'third'].includes(data.pov)) r.setup.pov = data.pov;
+        if (Array.isArray(data.enemies)) r.setup.enemies = [...new Set(data.enemies)].filter(e => ENEMIES[e]);
+        if (changed.length) return `The player adjusted the story settings (${changed.join('; ')}). Shift into it naturally over the next chapter; if the System's personality changed, give it an in-world reason (an update, a glitch, a mood).`;
         return null;
       });
     }
@@ -758,7 +772,7 @@ Continue the story from this decision.`;
         const r = await load(data.id), last = r.chapters.at(-1);
         if (!last || last.decision) fail('This chapter already has a decision.', 409);
         let decision;
-        if (Number.isInteger(data.index) && last.choices[data.index]) decision = { text: last.choices[data.index], custom: false, index: data.index };
+        if (Number.isInteger(data.index) && last.choices[data.index]) decision = { text: last.choices[data.index], custom: false, index: data.index, tag: last.choiceTags?.[data.index] || '' };
         else if (typeof data.custom === 'string' && data.custom.trim()) decision = { text: txt(data.custom, 300), custom: true };
         else fail('Pick a choice or describe your move.');
         if (last.decider) decision.by = last.decider;

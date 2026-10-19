@@ -366,9 +366,12 @@ function render() {
   el.statusBtn.title = pts ? `${pts} stat point${pts === 1 ? '' : 's'} to spend` : 'Open your status screen';
   if (!el.pause.hidden) renderPause();
   if (pending) {
-    el.choices.replaceChildren(...last.choices.map((c, i) => h('button', {
-      class: 'choice', type: 'button', disabled: S.busy || !S.configured, onclick: () => choose({ index: i }),
-    }, h('span', { class: 'key' }, String(i + 1)), h('span', {}, c))));
+    el.choices.replaceChildren(...last.choices.map((c, i) => {
+      const tag = last.choiceTags?.[i];
+      return h('button', {
+        class: 'choice', type: 'button', disabled: S.busy || !S.configured, onclick: () => choose({ index: i }),
+      }, h('span', { class: 'key' }, String(i + 1)), h('span', { class: 'choice-body' }, tag ? h('span', { class: `ctag ${TAG_LEAN[tag] || 'gray'}` }, tag) : null, h('span', {}, c)));
+    }));
   }
   for (const x of el.customForm.elements) x.disabled = S.busy || !S.configured;
   el.rerollBtn.disabled = S.busy || !S.configured;
@@ -504,6 +507,7 @@ function renderSheet() {
     s.inventory.length ? h('ul', {}, ...s.inventory.map(x => h('li', {}, x, isNew(prevItems, x)))) : h('div', { class: 'empty' }, 'Empty'),
     s.titles.length ? h('h3', {}, 'Titles') : null,
     s.titles.length ? h('ul', {}, ...s.titles.map(x => h('li', {}, x, isNew(prevTitles, x)))) : null,
+    pathMeter(s.alignment || 0),
     meter('Authority', s.authority || 0, 100, 'fill-auth'),
     s.patrons?.length ? h('h3', {}, 'Patrons') : null,
     s.patrons?.length ? h('ul', {}, ...s.patrons.map(x => h('li', {}, x))) : null,
@@ -772,6 +776,7 @@ function renderPause() {
   if (S.tab === 'messages' && S.run.setup.family !== 'sanctuary') S.tab = 'character';
   for (const t of document.querySelectorAll('.tab')) { t.classList.toggle('on', t.dataset.tab === S.tab); t.setAttribute('aria-selected', t.dataset.tab === S.tab); }
   const viewsExtra = { voices: pauseVoices };
+  viewsExtra.settings = pauseSettings;
   const views = { ...viewsExtra, character: pauseCharacter, gear: pauseGear, party: pauseParty, codex: pauseCodex, vision: pauseVision, messages: pauseMessages };
   el.pauseBody.replaceChildren(...(views[S.tab] || pauseCharacter)(sh).filter(Boolean));
 }
@@ -824,6 +829,7 @@ function pauseCharacter(sh) {
       h('div', { class: 'who-big' }, sh.name),
       h('div', { class: 'cls' }, `${sh.class} · `, h('span', { class: 'lvl' }, `Level ${sh.level}`), sh.condition ? ` · ${sh.condition}` : ''),
       meterEl('Health', sh.health, sh.max_health, 'fill-hp'), meterEl('Energy', sh.energy, sh.max_energy, 'fill-en'), meterEl('Experience', sh.xp, sh.xp_to_next, 'fill-xp'),
+      pathMeter(sh.alignment || 0),
       meterEl(`Authority with ${sysName()}`, sh.authority || 0, 100, 'fill-auth'),
       h('div', { class: 'skill-desc' }, authorityTier(sh.authority || 0)),
       sh.patrons?.length ? h('h3', {}, 'Patrons') : null,
@@ -847,6 +853,25 @@ function authorityTier(a) {
   if (a >= 25) return 'It offers you choices of reward.';
   if (a >= 10) return 'It answers simple questions.';
   return 'It does not know your name yet.';
+}
+const TAG_LEAN = { Heroic: 'light', Merciful: 'light', Bond: 'light', Ruthless: 'dark', Reckless: 'dark', Selfish: 'self', Loot: 'self', Power: 'self' };
+const pathTier = a => (a >= 60 ? 'Seraph' : a >= 20 ? 'Lightbound' : a <= -60 ? 'Infernal' : a <= -20 ? 'Ashen' : 'Unbound');
+const PATH_TEXT = {
+  Seraph: 'Selfless and protective. People follow you; the darkness notices you.',
+  Lightbound: 'Leaning toward doing right, even when it costs you.',
+  Unbound: 'Out for yourself. Pragmatic, mercenary, loyal to your own.',
+  Ashen: 'Leaning ruthless. You get results, and people keep their distance.',
+  Infernal: 'Power at any cost. Feared, followed by the wrong kind of people.',
+};
+function pathMeter(a = 0) {
+  const marker = h('div', { class: 'path-marker' });
+  marker.style.left = `${(Math.max(-100, Math.min(100, a)) + 100) / 2}%`;
+  const tier = pathTier(a);
+  return h('div', { class: 'path' },
+    h('div', { class: 'meter-top' }, h('span', {}, 'Path'), h('span', { class: `path-name p-${tier.toLowerCase()}` }, tier)),
+    h('div', { class: 'path-bar' }, marker),
+    h('div', { class: 'path-ends' }, h('span', {}, 'Infernal'), h('span', {}, 'Unbound'), h('span', {}, 'Seraph')),
+    h('div', { class: 'skill-desc' }, PATH_TEXT[tier]));
 }
 function meterEl(label, v, max, cls) {
   const fill = h('div', { class: `meter-fill ${cls}` });
@@ -903,6 +928,38 @@ function pauseParty(sh) {
       h('div', { class: 'bond' }, bond),
       c.condition ? h('div', { class: 'skill-desc' }, `Condition: ${c.condition}`) : null);
   }))];
+}
+function pauseSettings() {
+  const st = S.run.setup, kids = (st.party || []).some(m => m.kid);
+  const clone = (src, value, label) => {
+    const sel = h('select', { 'aria-label': label }, ...[...src.options].map(o => h('option', { value: o.value }, o.textContent)));
+    sel.value = value; return sel;
+  };
+  const tone = clone(el.fTone, st.tone || 'gritty', 'Tone');
+  const style = clone(el.fStyle, st.style || 'lean', 'Writing style');
+  const pov = clone($('fPov'), st.pov || 'second', 'Point of view');
+  const personality = clone(el.fPersonality, st.personality || 'auto', 'System personality');
+  const words = clone(el.fWords, String(st.words || 900), 'Chapter length');
+  const rating = clone(el.fRating, st.rating || 'r', 'Content rating');
+  const romance = clone(el.fRomance, st.romance || 'off', 'Romance');
+  for (const o of [...rating.options]) if (o.value === 'pg') o.remove();
+  const enemyBoxesNow = [...el.fEnemies.querySelectorAll('input')].map(b => {
+    const box = h('input', { type: 'checkbox', value: b.value }); box.checked = (st.enemies || []).includes(b.value);
+    return [box, h('label', { class: 'chip' }, box, ' ', b.parentElement.textContent.trim())];
+  });
+  const field = (label, ctl) => h('div', {}, h('label', {}, label), ctl);
+  const save = () => sheetAction('/api/forge/settings', {
+    tone: tone.value, style: style.value, pov: pov.value, personality: personality.value, words: Number(words.value),
+    ...(kids ? {} : { rating: rating.value, romance: romance.value }),
+    enemies: enemyBoxesNow.filter(([b]) => b.checked).map(([b]) => b.value),
+  }, 'Story settings saved. The next chapter shifts into them.');
+  return [
+    h('p', { class: 'appearance' }, 'Tweak the story between chapters. Changes kick in from the next chapter, and the story eases into them instead of jumping.'),
+    h('div', { class: 'grid2' }, field('Tone', tone), field('Writing style', style), field('Point of view', pov), field(`${sysName()}’s personality`, personality), field('Chapter length', words),
+      kids ? null : field('Content rating', rating), kids ? null : field('Romance', romance)),
+    h('label', {}, 'Enemies'), h('div', { class: 'chips' }, ...enemyBoxesNow.map(([, l]) => l)),
+    h('div', { class: 'decision-foot' }, h('button', { class: 'btn primary', type: 'button', onclick: save }, 'Save story settings')),
+  ];
 }
 function pauseVoices() {
   const st = S.run.setup;
